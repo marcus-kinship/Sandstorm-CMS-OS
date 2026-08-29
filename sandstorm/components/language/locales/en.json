@@ -1,0 +1,25 @@
+{
+    "en": {
+        "Language": "Language",
+        "Language settings": "Language settings",
+        "More settings": "More settings",
+        "Set as active": "Set as active",
+        "Active": "Active",
+        "Controlpanel": "Controlpanel",
+        "Settings for the entire os cms system": "Settings for the entire os cms system",
+        "Task Manager": "Task Manager",
+        "Settings for Taskbar": "Settings for Taskbar",
+        "Customize": "Customize",
+        "Theme": "Theme",
+        "Taskbar": "Taskbar",
+        "Lock": "Lock",
+        "Settings for taskbar": "Settings for taskbar",
+        "About Sandstorm": "About Sandstorm",
+        "Background settings": "Background settings",
+        "Users": "Users",
+        "My Account": "My Account",
+        "All Users": "All Users",
+        "Settings for fields": "Settings for fields",
+        "Add User": "Add User"
+    }
+}

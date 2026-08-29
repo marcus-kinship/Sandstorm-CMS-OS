@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- Arrow (top-left anchored) + a small "?" bubble, classic Help Select glyph. -->
+    <path fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" stroke-linejoin="round"
+        d="M2 2 L2 14.5 L5.2 11.7 L7.3 16.5 L9.4 15.6 L7.3 10.8 L11.6 10.8 Z" />
+    <g>
+        <circle cx="17.5" cy="8" r="5.5" fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" />
+        <text x="17.5" y="10.6" font-size="7" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#fff" stroke="none">?</text>
+    </g>
+</svg>

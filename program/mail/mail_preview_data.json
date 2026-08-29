@@ -1,0 +1,30 @@
+{
+    "mailData": {
+        "incoming": [
+            { "avatar": "JC", "from": "Jackson Cole", "subject": "Welcome to your workspace!", "date": "10:30 AM" },
+            { "avatar": "AP", "from": "Anna Peters", "subject": "Meeting tomorrow at 2 PM", "date": "9:15 AM" },
+            { "avatar": "RS", "from": "Robert Smith", "subject": "Project update", "date": "Yesterday" },
+            { "avatar": "ML", "from": "Maria Lopez", "subject": "Invoice #1234", "date": "Oct 12" }
+        ],
+        "sent": [
+            { "avatar": "ME", "from": "You", "subject": "Re: Project proposal", "to": "john@example.com", "date": "11:45 AM" },
+            { "avatar": "ME", "from": "You", "subject": "Meeting notes", "to": "team@company.com", "date": "9:30 AM" },
+            { "avatar": "ME", "from": "You", "subject": "Documents for review", "to": "client@client.com", "date": "Oct 11" },
+            { "avatar": "ME", "from": "You", "subject": "Follow-up on our call", "to": "partner@business.com", "date": "Oct 10" }
+        ],
+        "drafts": [
+            { "avatar": "DF", "from": "Draft", "subject": "Untitled message", "date": "Saved 2 hours ago" },
+            { "avatar": "DF", "from": "Draft", "subject": "Weekly report", "date": "Saved yesterday" },
+            { "avatar": "DF", "from": "Draft", "subject": "Birthday invitation", "date": "Saved Oct 9" },
+            { "avatar": "DF", "from": "Draft", "subject": "New product ideas", "date": "Saved Oct 8" }
+        ]
+    },
+    "contactsData": {
+        "all": [
+            { "avatar": "JC", "name": "Jackson Cole", "email": "jackson@example.com", "company": "Tech Corp" },
+            { "avatar": "AP", "name": "Anna Peters", "email": "anna@example.com", "company": "Design Studio" },
+            { "avatar": "RS", "name": "Robert Smith", "email": "robert@example.com", "company": "Marketing Inc" },
+            { "avatar": "ML", "name": "Maria Lopez", "email": "maria@example.com", "company": "Finance Ltd" }
+        ]
+    }
+}

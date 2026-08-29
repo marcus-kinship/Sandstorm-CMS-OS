@@ -1,0 +1,20 @@
+{
+    "sv": {
+        "Photo Viewer": "Bildvisare",
+        "View images": "Visa bilder",
+        " image file": "-bildfil",
+        "Drag an image or folder here, or choose:": "Dra en bild eller mapp hit, eller välj:",
+        "Open File": "Öppna fil",
+        "Open Folder": "Öppna mapp",
+        "Zoom Out": "Zooma ut",
+        "Zoom In": "Zooma in",
+        "Fit": "Anpassa",
+        "Previous": "Föregående",
+        "Play Slideshow": "Spela bildspel",
+        "Next": "Nästa",
+        "Menu": "Meny",
+        "Fit to Window": "Anpassa till fönster",
+        "Properties": "Egenskaper",
+        "Pause": "Pausa"
+    }
+}

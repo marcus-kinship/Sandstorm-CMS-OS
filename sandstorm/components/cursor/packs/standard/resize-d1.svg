@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- Diagonal double-arrow ⤡ (NW-SE) — center-anchored. Same double-arrow
+         shape as resize-h.svg, rotated 45°. -->
+    <g fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" stroke-linejoin="round"
+       transform="rotate(45 12 12)">
+        <path d="M1 12 L7 7 L7 10.5 L17 10.5 L17 7 L23 12 L17 17 L17 13.5 L7 13.5 L7 17 Z" />
+    </g>
+</svg>

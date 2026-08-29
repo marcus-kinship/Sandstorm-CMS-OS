@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- Horizontal double-arrow ↔ — center-anchored. -->
+    <g fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" stroke-linejoin="round">
+        <path d="M1 12 L7 7 L7 10.5 L17 10.5 L17 7 L23 12 L17 17 L17 13.5 L7 13.5 L7 17 Z" />
+    </g>
+</svg>

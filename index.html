@@ -1,0 +1,184 @@
+
+<meta charset='UTF-8'>
+<script src="sandstorm.gen.js"></script>
+<script>
+  s(async function (app) {
+    // Single source of truth for the OS's default wallpaper — index.html is
+    // itself the config for boot, so this lives here (not hardcoded a
+    // second time in login.js, and not read back out of a runtime module
+    // like sandstorm.gen.js's app.config.local). Passed through to the
+    // login program via its own start: step below (see load.js's
+    // loginProgram handler, which forwards step[0] as start()'s 4th arg),
+    // and used directly by the desktop.setBackgroundImage step underneath.
+    const DEFAULT_BACKGROUND = "wallpaper/huacachina-4173731_1920.jpg";
+
+    // Load the system configuration
+    await app.load.system({
+      title: "Sandstorm",
+
+      // --- User profile & settings (set before login, or replaced by login program) ---
+      user: {
+        profile: {
+          name: "Marcus",
+          lastname: "Larsson",
+          role: "admin",
+        },
+        settings: {
+          language: "en",
+          desktop: {
+            backgroundimage: "",
+            opacity: "",
+            backgroundimagecover: "",
+            repeat: "",
+            position: "",
+            wakeUpEnabled: true
+          },
+          theme: {
+            backgruondColorA: "#2525254d",
+            backgruondColorB: "#0a0a0a33",
+            backgruondColorC: "#00000040",
+            backgruondColorD: "#00000060",
+            backgruondColorE: "#00000080",
+            fontColor: "#ffffff",
+            hoverColor: "#ffc108",
+            opacity: "20",
+            opactiyTrue: true,
+            borderRadius: "12px",
+            blur: "0px"
+          }
+        }
+      },
+
+      // --- Programs to be loaded on startup ---
+      programs: [
+        { path: "gui/setup.js" },           // Uses ProgramRoot automatically
+        { path: "calc/setup.js" },
+        { path: "formbuilder/setup.js" },
+        { path: "mail/setup.js" },
+        { path: "solitaire/setup.js" },
+        { path: "notepad/setup.js" },
+        { path: "voiceinput/voiceinput.js" },
+        { path: "mediaplayer/setup.js" },
+        { path: "designer/setup.js" },
+        { path: "aichat.js", root: "components" } // AI Chat taskbar icon (UI shell only) — comment out to disable
+      ],
+      
+      // --- Startup sequence ---
+      start: [
+        // Login program (located in components) — background/apiAddress/
+        // autoLogout are forwarded to login.js's start() as its own config,
+        // not read back from anywhere else (apiAddress is unused for now,
+        // prep for a future real backend login endpoint). autoLogout is
+        // "never" or a number of seconds of inactivity before the session
+        // is ended outright (see login/autologout.js) — distinct from the
+        // separate, user-editable Control Panel lock timeout, which only
+        // re-shows the login screen and keeps the session alive.
+        [{ loginProgram: "login/login.js", background: DEFAULT_BACKGROUND, apiAddress: "", autoLogout: "never" }],
+
+        // Set background image
+        ["desktop.setBackgroundImage", {
+          image: DEFAULT_BACKGROUND,
+          size: "cover",
+          repeat: "no-repeat",
+          position: "center center"
+        }],
+
+
+        [{ removeLoadingScreen: true }],
+
+        // Initialize desktop icons
+        ["desktop.icon.init"],
+
+
+        ["desktop.contextMenuInit", "body", {
+          zIndex: 10000,
+          classes: "",
+          seltaget: false,
+          exclude: ".desktop-icon, .window, #taskbar, .toggleWindow"
+        }],
+
+        // Start button on taskbar
+        ["desktop.startmenu.startbutton", {
+          shortcut: "s+m",
+          id: "bts-start",
+          content: `<svg><use href="#ic-bts-start"></use></svg><div class="after pulse"></div>`,
+          title: "Start",
+          style: `display: flex; align-items: center; flex-direction: column-reverse;
+                        width: 14px; padding-bottom: 6px; padding-top: 6px; margin-top: 7px;
+                        margin-left: 8px; margin-right: 4px;`
+        }],
+
+        // Initialize Startmenu
+        ["desktop.startmenu.init", {
+          id: "ms-startmenu",
+          class: "show-f",
+          position: "bottom"
+        }],
+
+        // Create tabs inside Startmenu
+        ["desktop.startmenu.createAppsTab"],
+        ["desktop.startmenu.createEmailTab"],
+        ["desktop.startmenu.createCalendarTab", {}, {
+          dailySchedule: {
+            start: "08:00",
+            end: "19:00",
+            timeType: 24,
+            callback: "desktop.startmenu.calendarAddEvent"
+          }
+        }],
+
+        // Initialize taskbar options
+        ["desktop.taskbar.options", {
+          id: "taskbar",
+          position: "bottom",
+          height: "40px",
+          width: "100%",
+          css: "",
+          context: {
+            zIndex: 9999,
+            classes: "",
+            seltaget: false,
+            exclude: ".blockicon"
+          },
+          button: "desktop.startmenu.build"
+        }],
+
+        // Taskbar: program icons
+        ["desktop.taskbar.setTaskIcon", {
+          id: "searchField",
+          class: "blockicon",
+          svg: "#ic-search",
+          name: "Search",
+          order: -1,
+          callback: function (e) {
+
+            e?.stopPropagation();
+            setTimeout(() => {
+              app.desktop.startmenu.toggleMenu();
+              document.getElementById('q-search')?.focus();
+
+              var menuEl = app.desktop.startmenu.options.menu;
+              if (menuEl && app.exists('app.ui.caret')) {
+                var repositioned = false;
+                var reposition = function () {
+                  if (repositioned) return;
+                  repositioned = true;
+                  menuEl.removeEventListener('transitionend', onTransitionEnd);
+                  app.ui.caret.updatePosition();
+                };
+                var onTransitionEnd = function (ev) { if (ev.target === menuEl) reposition(); };
+                menuEl.addEventListener('transitionend', onTransitionEnd);
+                setTimeout(reposition, 450);
+              }
+            }, 0);
+          },
+        }],
+
+        // Note: languageIcon is registered by language/language.js during boot
+
+        // Build the taskbar after all icons are set
+        ["desktop.taskbar.build"],
+      ]
+    });
+  });
+</script>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- No-entry circle+slash — center-anchored. -->
+    <g fill="none" stroke="#c62828" stroke-width="2.6" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9" />
+        <line x1="6" y1="18" x2="18" y2="6" />
+    </g>
+</svg>

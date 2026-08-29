@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- Arrow only (top-left anchored, hotspot). "Working in Background"'s ring is
+         rendered as a separate overlay element in renderer.js, not baked in here —
+         a <use> always rotates its ENTIRE referenced content as one atomic unit, so
+         a spin animation applied to a <use> referencing this file would spin the
+         arrow right along with the ring. Keeping the ring as its own independent
+         SVG element is what lets it spin while this arrow stays fixed. -->
+    <path fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" stroke-linejoin="round"
+        d="M2 2 L2 13.5 L4.7 11.2 L6.5 15.5 L8.4 14.7 L6.5 10.4 L10.2 10.4 Z" />
+</svg>

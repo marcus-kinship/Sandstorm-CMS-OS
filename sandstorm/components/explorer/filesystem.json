@@ -1,0 +1,61 @@
+{
+    "/": {
+        "type": "folder",
+        "children": {
+            "Documents": {
+                "type": "folder",
+                "children": {
+                    "report.pdf":    { "type": "file", "size": "245 KB", "modified": "2024-05-10", "ext": "pdf" },
+                    "notes.txt":     { "type": "file", "size": "2 KB",   "modified": "2024-05-15", "ext": "txt" },
+                    "budget.xlsx":   { "type": "file", "size": "45 KB",  "modified": "2024-04-01", "ext": "xlsx" },
+                    "contract.docx": { "type": "file", "size": "88 KB",  "modified": "2024-03-20", "ext": "docx" }
+                }
+            },
+            "Downloads": {
+                "type": "folder",
+                "children": {
+                    "setup.exe":   { "type": "file", "size": "54 MB",  "modified": "2024-04-22", "ext": "exe" },
+                    "archive.zip": { "type": "file", "size": "128 MB", "modified": "2024-03-15", "ext": "zip" },
+                    "update.msi":  { "type": "file", "size": "32 MB",  "modified": "2024-02-10", "ext": "msi" }
+                }
+            },
+            "Pictures": {
+                "type": "folder",
+                "children": {
+                    "vacation.jpg":   { "type": "file", "size": "3.2 MB", "modified": "2024-03-05", "ext": "jpg" },
+                    "profile.png":    { "type": "file", "size": "512 KB", "modified": "2024-02-20", "ext": "png" },
+                    "wallpaper.jpg":  { "type": "file", "size": "4.1 MB", "modified": "2024-01-10", "ext": "jpg" },
+                    "huacachina.jpg": { "type": "file", "size": "2.1 MB", "modified": "2024-01-10", "ext": "jpg", "url": "wallpaper/huacachina-4173731_1920.jpg" }
+                }
+            },
+            "Projects": {
+                "type": "folder",
+                "children": {
+                    "sandstorm": {
+                        "type": "folder",
+                        "children": {
+                            "index.html": { "type": "file", "size": "8 KB",   "modified": "2024-05-20", "ext": "html" },
+                            "style.css":  { "type": "file", "size": "12 KB",  "modified": "2024-05-20", "ext": "css" },
+                            "app.js":     { "type": "file", "size": "156 KB", "modified": "2024-05-21", "ext": "js" }
+                        }
+                    }
+                }
+            },
+            "Music": {
+                "type": "folder",
+                "children": {
+                    "playlist.m3u": { "type": "file", "size": "4 KB",   "modified": "2024-01-05", "ext": "m3u" },
+                    "song.mp3":     { "type": "file", "size": "5.6 MB", "modified": "2024-02-01", "ext": "mp3" }
+                }
+            },
+            "Desktop": {
+                "type": "folder",
+                "children": {}
+            },
+            "RealStorage": {
+                "type": "folder",
+                "children": {}
+            }
+        }
+    }
+}

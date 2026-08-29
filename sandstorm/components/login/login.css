@@ -1,0 +1,488 @@
+.window.pid-sandstorm_login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    user-select: none;
+    -webkit-user-select: none;
+    color: #fff;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.window.pid-sandstorm_login .content {
+    overflow: hidden;
+    height: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-direction: column;
+}
+
+.window.pid-sandstorm_login .window-list {
+    display: none;
+}
+
+.window.pid-sandstorm_login * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Entrance animations */
+.window.pid-sandstorm_login .fade-up {
+    opacity: 0;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-out;
+}
+
+.window.pid-sandstorm_login .fade-up.clock {
+    animation: fadeUpClock 0.6s forwards;
+}
+
+.window.pid-sandstorm_login .fade-up.fields {
+    transform: translateY(30px);
+    animation: fadeUpFields 2s forwards;
+}
+
+.window.pid-sandstorm_login .fade-up.icons {
+    transform: translateY(30px);
+    animation: fadeUpIcons 1s forwards;
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeUpClock {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUpFields {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUpIcons {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.window.pid-sandstorm_login {
+    --bg1: linear-gradient(135deg, #0f172a 0%, #0b1220 50%, #061126 100%);
+    --accent: #6ee7b7;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --input-text-color: #fff;
+}
+
+/* Allow text selection in input fields */
+.window.pid-sandstorm_login .input input {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+body {
+    background-color: #000;
+}
+
+/* Layer 1: Background */
+.window.pid-sandstorm_login .background-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: var(--bg1);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.window.pid-sandstorm_login .bgs {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+@keyframes float {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(20px); }
+    100% { transform: translateY(0); }
+}
+
+/* Layer 2: Blur layer */
+.window.pid-sandstorm_login .blur-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    backdrop-filter: blur(50px) saturate(150%);
+    -webkit-backdrop-filter: blur(50px) saturate(150%);
+    background: rgba(15, 23, 42, 0.3);
+    pointer-events: none;
+}
+
+/* Layer 3: Content */
+.window.pid-sandstorm_login .top-clock {
+    margin-top: -8%;
+    text-align: center;
+    z-index: 10;
+}
+
+.window.pid-sandstorm_login .time {
+    font-size: 44px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #fff, #e0f2fe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0px 0px 10px #00000040;
+}
+
+.window.pid-sandstorm_login .date {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    font-weight: 400;
+    text-shadow: 0px 0px 10px #00000040;
+}
+
+.window.pid-sandstorm_login .card {
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 36px 28px;
+    max-width: 420px;
+    width: 100%;
+    margin-top: 70px;
+    z-index: 10;
+}
+
+.window.pid-sandstorm_login form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    position: relative;
+}
+
+/* Hover animation for input fields */
+.window.pid-sandstorm_login .input:hover {
+    box-shadow: 1px 1px 1px #ffffff49, -1px -1px 1px #ffffff49;
+}
+
+.window.pid-sandstorm_login .input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    transition: box-shadow 1s;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0px;
+    color: #ffffff;
+    background-color: var(--theme-backgruondcolorc, #00000040);
+    box-shadow: 1px 1px 1px #ffffff29, -1px -1px 1px #ffffff29;
+}
+
+/* Rings the whole visible, rounded field (icon + input background) when its
+   inner <input> has KEYBOARD focus specifically, instead of the bare
+   <input> itself - the input has no border-radius or visible boundary of
+   its own (it's transparent, all the real styling lives on THIS wrapper),
+   so a ring drawn directly on it would show sharp corners floating inside
+   a rounded field instead of actually outlining the field the user sees.
+   :has(input:focus-visible), not :focus-within - the latter would also
+   match a plain mouse click into the field, which is exactly the
+   mouse-vs-keyboard distinction the whole focus-visible system exists to
+   preserve (Phase 1). Keeps the wrapper's own existing two-shadow bevel
+   (listed again here, since a single box-shadow declaration replaces
+   rather than adds to another). */
+/* html:not(.input-modality-mouse) - text inputs match :focus-visible on ANY
+   focus per spec (mouse click included), unlike buttons/divs. The modality
+   class from ui.js's tooltip module fills that gap: ring shows only when the
+   most recent interaction was Tab, not a mouse click into the field. */
+html:not(.input-modality-mouse) .window.pid-sandstorm_login .input:has(input:focus-visible) {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 1px 1px 1px #ffffff29, -1px -1px 1px #ffffff29, 0 0 0 4px rgba(0, 0, 0, 0.55);
+}
+
+/* The inner input keeps its OWN keyboard ring suppressed here specifically
+   - the wrapper rule above already provides the halo, correctly shaped. */
+.window.pid-sandstorm_login .input input:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.window.pid-sandstorm_login .input input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    color: #fff;
+    font-size: 15px;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s;
+}
+
+/* Transparent autofill styling */
+.window.pid-sandstorm_login input,
+.window.pid-sandstorm_login select {
+    color: var(--input-text-color) !important;
+    -webkit-text-fill-color: var(--input-text-color) !important;
+}
+
+.window.pid-sandstorm_login input:-webkit-autofill,
+.window.pid-sandstorm_login input:-webkit-autofill:hover,
+.window.pid-sandstorm_login input:-webkit-autofill:focus,
+.window.pid-sandstorm_login input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--input-text-color) !important;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.window.pid-sandstorm_login .password-row {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.window.pid-sandstorm_login .password-row .input {
+    width: 100%;
+    order: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.window.pid-sandstorm_login .input input::placeholder {
+    color: #fff;
+    opacity: 0.7;
+}
+
+/* Password toggle eye icon */
+.window.pid-sandstorm_login .password-toggle {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: default;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+    z-index: 5;
+}
+
+.window.pid-sandstorm_login .password-toggle:hover {
+    opacity: 1;
+}
+
+/* Real submit button - previously the form could only be submitted via
+   Enter on the password field, with nothing visible/Tab-reachable to click
+   or activate directly (a real gap for the keyboard nav spec's own
+   "Tab -> Logga in" requirement). Uses the OS's own standard `.aero-button`
+   component (see program/gui/gui.js's "Buttons" showcase section, and
+   basic.css for its actual rules) rather than a one-off style, so it looks
+   and behaves (including the mouse-following glow, app.ui.aeroGlow) like
+   every other primary button in the OS - Start button, dialog confirm
+   buttons, Designer, etc. `.login-submit-btn` below only adds the
+   collapse-until-focus behavior on top; every other visual property
+   (gradient, pill shape, glow) comes from `.aero-button` itself.
+
+   `align-self: center` since aero-button is a natural-width pill, not a
+   stretched full-width control like the inputs above it in the same flex
+   column (`.fields`'s default `align-items: stretch` would otherwise force
+   it to the column's full width, which the pill shape isn't designed for).
+
+   Collapsed (zero height/opacity) by default - stays a real, reachable
+   stop in Tab order the whole time (only display:none/visibility:hidden/
+   tabindex="-1" remove something from tab order; a clipped, zero-height
+   element does not), but doesn't visually clutter the original compact
+   mouse-only card until a keyboard user actually tabs to it, at which
+   point it expands into view. Mouse/Enter-in-password submission is
+   unaffected either way - this only changes when the button ITSELF is
+   visible, not whether the form can be submitted. Only vertical padding is
+   touched (not aero-button's own horizontal 21px) so the label doesn't
+   shift sideways as it expands, only grows open. */
+.window.pid-sandstorm_login .login-submit-btn {
+    /* aero-button's own default is a full 28px pill - fine for the
+       compact, icon-sized Start button (narrow enough that the same
+       radius reads as a tight rounded shape, not an oval), but this
+       button is wide (real text label), so the same value stretches into
+       an obvious pill. Matching the card's OWN rounding instead (the
+       username/password .input fields already use 10px) keeps it visually
+       consistent with its own card, rather than borrowed from an icon
+       button with a very different aspect ratio. */
+    border-radius: 10px;
+    align-self: center;
+    /* Wider than aero-button's own default 21px horizontal padding - not
+       part of the collapse animation (only top/bottom padding animates),
+       so set once, unconditionally, here rather than repeated in :focus. */
+    padding-left: 30px;
+    padding-right: 30px;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+}
+
+.window.pid-sandstorm_login .login-submit-btn:focus {
+    max-height: 44px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    opacity: 1;
+}
+
+.window.pid-sandstorm_login .input i {
+    width: 14px;
+    color: #fff;
+    opacity: 0.9;
+    font-size: 13px;
+    margin-top: 2px;
+    margin-left: 1px;
+}
+
+/* Language + forgot-password buttons (bottom-right pair). Standalone fixed
+   position each, rather than flex children of a shared wrapper - lets each
+   sit anywhere in DOM/tab order independently (see login.js's own comment
+   on where each is placed for the keyboard nav spec) while rendering in
+   the exact same two spots a shared flex row used to produce: langFab
+   flush at right:24px, forgotFab one button-width + gap further out
+   (32px + 10px = 42px) at right:66px. */
+.window.pid-sandstorm_login .fab-lang {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 50;
+}
+
+.window.pid-sandstorm_login .fab-forgot {
+    position: fixed;
+    right: 66px;
+    bottom: 24px;
+    z-index: 50;
+}
+
+.window.pid-sandstorm_login .fab {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.00), rgba(255, 255, 255, 0.00));
+    backdrop-filter: blur(6px);
+    border: 0px solid var(--glass-border);
+    display: grid;
+    place-items: center;
+    cursor: default;
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.0);
+    transition: background-color 1s ease;
+}
+
+.window.pid-sandstorm_login .fab:hover {
+    background: #00000040;
+    transition: background-color 1s ease;
+}
+
+.window.pid-sandstorm_login .fab i {
+    font-size: 16px;
+    color: #fff;
+    filter: drop-shadow(0 0px 10px rgba(0, 0, 0, 0.4));
+}
+
+.window.pid-sandstorm_login .fab:active {
+    transform: translateY(1px);
+}
+
+.window.pid-sandstorm_login .lang-menu {
+    position: fixed;
+    right: 24px;
+    bottom: 75px;
+    display: none;
+    z-index: 60;
+    min-width: 210px;
+    background: linear-gradient(144deg, rgba(37, 37, 37, 0.5) 0%, rgba(10, 10, 10, 0.4) 47%);
+    box-shadow: 1px 1px 1px #ffffff29, -1px -1px 1px #ffffff29;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+    padding-top: 8px;
+    border-radius: 10px;
+}
+
+.window.pid-sandstorm_login .lang-menu button {
+    background: transparent;
+    border: 0;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: default;
+    width: 100%;
+    text-align: left;
+    background-color: #ffffff00;
+}
+
+.window.pid-sandstorm_login .lang-menu button:hover {
+    background-color: #00000040;
+}
+
+/* Custom context menu */
+.window.pid-sandstorm_login .custom-context-menu {
+    position: fixed;
+    display: none;
+    z-index: 100;
+    min-width: 210px;
+    background: linear-gradient(144deg, var(--theme-backgruondcolora, rgba(37, 37, 37, 0.3)) 0%, var(--theme-backgruondcolorb, rgba(10, 10, 10, 0.2)) 47%);
+    box-shadow: 1px 1px 1px #ffffff29, -1px -1px 1px #ffffff29;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+    padding-top: 8px;
+    border-radius: 10px;
+}
+
+.window.pid-sandstorm_login .context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: default;
+    color: #fff;
+    font-size: 14px;
+    background-color: #ffffff00;
+    transition: background-color 1s ease;
+}
+
+.window.pid-sandstorm_login .context-menu-item:hover {
+    background-color: #00000040;
+    animation: fadeInOut 3s ease infinite;
+    animation-delay: 1s;
+}
+
+.window.pid-sandstorm_login .context-menu-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.window.pid-sandstorm_login .context-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
+.window.pid-sandstorm_login .capslock {
+    position: absolute;
+    right: -40px;
+    height: 37px;
+    line-height: 37px;
+}
+
+@media (max-width: 768px) {
+    .window.pid-sandstorm_login .time {
+        font-size: 3.5rem;
+    }
+}
+
+@keyframes fadeInOut {
+    0%   { background-color: var(--theme-backgroundcolorc, #00000040); }
+    50%  { background-color: #ffffff00; }
+    100% { background-color: var(--theme-backgroundcolorc, #00000040); }
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- Pen tilted at a writing angle — classic "Handwriting" glyph (pen/tablet input, not a text I-beam). -->
+    <g fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" stroke-linejoin="round">
+        <path d="M4 20 L6.5 19.3 L16.8 9 L14 6.2 L3.7 16.5 Z" />
+        <path d="M14 6.2 L16 4.2 C16.6 3.6 17.5 3.6 18 4.2 L19.3 5.5 C19.9 6.1 19.9 7 19.3 7.5 L17.3 9.5 Z" />
+    </g>
+</svg>

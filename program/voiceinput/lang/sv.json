@@ -1,0 +1,16 @@
+{
+    "sv": {
+        "Voice Input": "Röstinmatning",
+        "Speak directly into text fields when voice input is enabled.": "Tala direkt in i textfält när röstinmatning är aktiverat.",
+        "Ready": "Redo",
+        "Click on a text field to start speaking": "Klicka på ett textfält för att börja tala",
+        "Input completed": "Inmatning klar",
+        "Not supported": "Stöds inte",
+        "Your browser does not support speech recognition.": "Din webbläsare stöder inte taligenkänning.",
+        "Listening...": "Lyssnar...",
+        "Press S + P to stop recording.": "Tryck S + P för att stoppa inspelningen.",
+        "Error": "Fel",
+        "Could not start": "Kunde inte starta",
+        "Speech input could not be started.": "Röstinmatningen kunde inte startas."
+    }
+}

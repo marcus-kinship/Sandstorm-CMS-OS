@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <!-- Alternate Select — thinner, more upright arrow than Normal, matching classic Windows "alternate select" proportions. -->
+    <path fill="currentColor" stroke="rgba(0,0,0,0.55)" stroke-width="1" stroke-linejoin="round"
+        d="M5 2 L5 15.5 L7.6 13.2 L9.6 18.5 L11.6 17.6 L9.6 12.4 L13.2 12.4 Z" />
+</svg>

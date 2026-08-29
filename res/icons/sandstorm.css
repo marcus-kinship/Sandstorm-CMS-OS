@@ -1,0 +1,41 @@
+/*!
+ * Sandstorm icon subset — hand-picked from Font Awesome 6.4.0 Free (solid style only).
+ * Source: https://fontawesome.com  License: https://fontawesome.com/license/free
+ * (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ *
+ * Only the glyphs actually used in Sandstorm are declared below (see the
+ * `content` values, extracted from the full Font Awesome 6.4.0 all.min.css).
+ * If a new icon is needed, add its rule here with the correct codepoint —
+ * find it via the Font Awesome icon gallery or the full all.min.css.
+ */
+@font-face {
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 900;
+    font-display: block;
+    src: url(fa-solid-900.woff2) format("woff2");
+}
+
+.fa,
+.fa-solid,
+.fas {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    display: var(--fa-display, inline-block);
+    font-style: normal;
+    font-variant: normal;
+    line-height: 1;
+    text-rendering: auto;
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.fa-unlock:before          { content: "\f09c"; }
+.fa-eye-slash:before       { content: "\f070"; }
+.fa-eye:before              { content: "\f06e"; }
+.fa-scissors:before        { content: "\f0c4"; }
+.fa-copy:before             { content: "\f0c5"; }
+.fa-paste:before            { content: "\f0ea"; }
+.fa-key:before               { content: "\f084"; }
+.fa-earth-americas:before  { content: "\f57d"; }
+.fa-user:before              { content: "\f007"; }

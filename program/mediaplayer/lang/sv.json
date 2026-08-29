@@ -1,0 +1,33 @@
+{
+    "sv": {
+        " audio file": "-ljudfil",
+        " video file": "-videofil",
+        "Add File": "Lägg till fil",
+        "Add file": "Lägg till fil",
+        "Audio": "Ljud",
+        "Close Media": "Stäng media",
+        "Drag & drop files or folders here, or open:": "Dra och släpp filer eller mappar hit, eller öppna:",
+        "Media Player": "Mediaspelare",
+        "Mute": "Ljud av",
+        "Next": "Nästa",
+        "No media": "Inget media",
+        "No media playing": "Inget media spelas",
+        "No preview available": "Ingen förhandsvisning tillgänglig",
+        "Open File": "Öppna fil",
+        "Open Folder": "Öppna mapp",
+        "Pause": "Pausa",
+        "Play": "Spela",
+        "Play / Pause": "Spela / Pausa",
+        "Play audio and video files": "Spela ljud- och videofiler",
+        "Playlist": "Spellista",
+        "Preview": "Förhandsvisning",
+        "Previous": "Föregående",
+        "Remove": "Ta bort",
+        "Repeat": "Upprepa",
+        "Shuffle": "Blanda",
+        "Stop": "Stoppa",
+        "Supports": "Stöder",
+        "Unknown": "Okänd",
+        "Video": "Video"
+    }
+}
