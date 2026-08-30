@@ -166,7 +166,7 @@ Everything hangs off the global `app` object (aliased `os` inside program `setup
 
 | Namespace | Key calls |
 |---|---|
-| `app.api` | `app.api.get(url, params)` / `app.api.post(url, body)` — `ApiRequest`, chainable `.then/.catch`, 40 s timeout, REST-agnostic. |
+| `app.api` | `get(url, params)` / `post(url, body)` / `multiFormData(url, formData)` → `ApiRequest` (thenable **and** `.success/.fail/.done`). JSON in / JSON out, 40 s timeout, per-URL blacklist. See **[Backend integration](#backend-integration)**. |
 | `app.config` | `app.config.get/set/has/update/remove(namespace, key)` — in-memory only (use `localStorage` for persistence). |
 | `app.svg` | `app.svg.global.load(svg)` (session-lifetime), `app.svg.private.load(programId, svg)` / `unload(programId)` (window-lifetime). |
 | `app.historyManager` | `create(programId, {maxHistory})` → session with `execute(cmd)`, `undo()`, `redo()`, `clear()`, `canUndo/canRedo`. Also reached via `win.history`. |
@@ -419,19 +419,66 @@ The shell also exposes the AI Chat panel (`app.desktop.aiChat`), the Media Playe
 
 ## Backend integration
 
-`app.api` (`ApiRequest`, `sandstorm/components/api.js`) — 40 000 ms default timeout, logging, chainable callbacks:
+Sandstorm is front-end only, but every program can talk to a server through **`app.api`** (`sandstorm/components/api.js`). It is a thin `fetch` wrapper: **you own the endpoint, it only cares that the response is JSON.** Point the calls at a PHP script, a .NET controller, a Node route, or even a static `.json` file — same client.
+
+### Methods
+
+| Call | Sends | Notes |
+|---|---|---|
+| `app.api.get(url, params = {}, cb?)` | `params` → query string | |
+| `app.api.post(url, data = {}, cb?)` | `JSON.stringify(data)`, `Content-Type: application/json` | |
+| `app.api.multiFormData(url, formData, cb?)` | `FormData` (multipart) | file uploads |
+
+Each returns an **`ApiRequest`** that is both a thenable and a chainable-callback object:
 
 ```javascript
-os.api.get('/api/content', { id: 123 })
-    .then(data => updateContent(data))
-    .catch(err => console.error(err));
+// Promise / async-await
+const users = await os.api.get('/api/users', { page: 1 });
 
-os.api.post('/api/save', { content: "text" })
-    .then(() => showSuccess())
-    .catch(err => showError(err));
+os.api.post('/api/save', { title: "Hello", body: "…" })
+    .then(res => showSuccess(res))
+    .catch(err => showError(err))      // err.message = "HTTP 500: Internal Server Error"
+    .finally(() => stopSpinner());
+
+// Callback style (equivalent)
+os.api.post('/api/save', { title: "Hello" })
+    .success(res => showSuccess(res))
+    .fail(err  => showError(err))
+    .done(()   => stopSpinner());
+
+// third arg may be a function (=success) or { success, fail, done }
+os.api.get('/api/users', { page: 1 }, { success: render, fail: toast });
 ```
 
-REST-agnostic — works with PHP, .NET, Java or any REST backend. `config.local.jsapiLink` in `sandstorm.gen.js` points at an optional JSAPI gateway.
+### Contract & behaviour
+
+- **Response must be JSON** — `response.json()` is always parsed; return `{}` for empty results.
+- **Non-2xx rejects** with `Error("HTTP <status>: <statusText>")`; a network failure or a stall past **`app.api.config.timeout`** (default `40000` ms) rejects too.
+- Every request is **logged with the calling file + line** (stack introspection) when `config.local.dev` is on.
+- **Runtime URL blocking:** `app.api.addToBlacklist(url)` / `removeFromBlacklist` / `isBlacklisted` / `showBlacklist` / `clearBlacklist` — a blacklisted URL rejects immediately without hitting the network.
+
+### JSON links & base paths (`sandstorm.gen.js` → `config.local`)
+
+The client does **not** prepend a base — you pass the full URL. `config.local` gives you the pieces to compose one:
+
+| Field | Example | Use |
+|---|---|---|
+| `jsapiLink` | `/demo/api/jsapi` | absolute path to a host-app JSON API gateway (PHP/.NET/…) |
+| `ProgramRoot` | `<base>/program/` | e.g. `app.api.get(os.config.local.ProgramRoot + 'mail/data.json')` — load a program's own JSON |
+| `ResourcesRoot` | `<base>/res/` | static assets |
+| `hasAccessLink` | `<base>/api/js/check/access` | permission endpoint behind `app.hasAccess()` / `app.checkAccess()` |
+| `allowedExternalDomains` / `allowedBasePaths` | `[]` / `['/sandstorm/', …]` | cross-origin whitelist enforced by `app.validateDomain()` (`app.addAllowedDomain` / `addAllowedBasePath` to extend) |
+
+**Server side, all you implement is JSON endpoints.** Typical patterns already used in the codebase:
+
+```
+GET  /api/users?page=1                         → { users: [...], total: 42 }
+POST /api/fs/write   { path, content }          → { ok: true }              (Notepad / Designer save)
+POST /api/icons/rename { programId, oldName, newName } → { ok: true }       (desktop icon rename)
+POST /api/upload     (multipart FormData)       → { url: "/uploads/x.png" } (via multiFormData)
+```
+
+A minimal PHP handler is just `header('Content-Type: application/json'); echo json_encode($result);`; a .NET controller returns `Ok(new { ... })`. Anything that answers `2xx` with a JSON body works.
 
 ---
 
