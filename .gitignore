@@ -1,2 +1,23 @@
-
+# Tooling
 .claude/
+
+# Build output (combine.vbs / minify.vbs)
+dist/
+
+# Per-area dev notes — keep only the top-level NOTES.md
+NOTES.md
+!/NOTES.md
+
+# Windows cursor source assets (the Cursor Engine renders SVG, not .cur/.ani)
+*.cur
+*.ani
+
+# Stray artifacts / accidental nested clone
+Sandstorm-CMS-OS/
+UsersmackaAppData*
+*.tmp
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store
