@@ -299,6 +299,17 @@ export function draggable(options) {
     // Apply draggable functionality to the window element
     windowElement.draggable({
         handle: ".window-list", // Sets the header as the drag handle
+        // The header IS the drag handle, but the whole right-side control
+        // cluster (menu-mobile / minimize / maximize / close) and the window-
+        // icon flyout menu live inside it as plain <div>s, not <button>s. With
+        // touch-punch translating touchstart -> mousedown for jQuery UI, a tap
+        // on "close" on a phone started a window drag instead of closing it
+        // (the drag consumed the tap, so the .close click.close handler in
+        // lifecycle.js never fired). cancel: excludes those elements from
+        // starting a drag while the rest of the header stays draggable.
+        // (jQuery UI's own default cancel is "input,textarea,button,select,option"
+        // - it's replaced when set, so those are kept here too.)
+        cancel: ".controls, .controls *, .control-menu, .control-menu *, button, input, textarea, select, option, a",
         scroll: false, // Prevent scrolling during drag
 
         // Event triggered when dragging starts
