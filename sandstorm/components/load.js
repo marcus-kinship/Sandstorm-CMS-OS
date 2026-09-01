@@ -134,6 +134,10 @@
             programs: [
                 { path: "networkmonitor/setup.js", root: "components" },
                 { path: "notifications/setup.js", root: "components" },
+                // Update readiness agent — builds app.updates (readiness /
+                // handoff / panel). After notifications (for notify()), before
+                // controlpanel (whose update.js manifest augments app.updates).
+                { path: "updates/index.js", root: "components" },
                 { path: "explorer/setup.js", root: "components" },
                 { path: "recyclebin/setup.js", root: "components" },
                 { path: "controlpanel/controlpanel.js", root: "components" },

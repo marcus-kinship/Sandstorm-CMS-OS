@@ -35,6 +35,25 @@
     };
 
     /**
+     * In-flight mutating-request counter, read by the update readiness agent
+     * (components/updates/readiness.js) so a cutover is never proposed while
+     * a file write or upload is still on the wire. Bumped for POSTs whose URL
+     * looks like a write and for every multipart upload; decremented when the
+     * request settles (success OR failure).
+     * @private
+     */
+    app.api._pending = { writes: 0, uploads: 0 };
+    const WRITE_URL_RE = /\/(fs\/(write|mkdir|move|paste|remove|rename|touch|shortcut)|icons\/rename|users\/(add|update))\b|["']?action["']?\s*[:=]\s*["']?file\.(write|delete)/i;
+    function _isWriteUrl(url, body) {
+        return WRITE_URL_RE.test(String(url || '')) ||
+            (body != null && WRITE_URL_RE.test(typeof body === 'string' ? body : ''));
+    }
+    /** @returns {number} total mutating requests currently on the wire */
+    app.api.pendingWrites = function () {
+        return app.api._pending.writes + app.api._pending.uploads;
+    };
+
+    /**
      * Blacklist with details about where the calls were made from
      * @type {Object.<string, Array>}
      * @private
@@ -411,6 +430,10 @@
             logRequest('POST', url, callerInfo);
             app.dev.log(`Data: ${JSON.stringify(data)}`, 'API');
 
+            const _isWrite = _isWriteUrl(url, JSON.stringify(data));
+            if (_isWrite) app.api._pending.writes++;
+            const _settle = () => { if (_isWrite && app.api._pending.writes > 0) app.api._pending.writes--; };
+
             // Execute request with timeout
             executeRequest(url, {
                 method: 'POST',
@@ -420,9 +443,11 @@
                 body: JSON.stringify(data)
             }, 'POST')
                 .then(responseData => {
+                    _settle();
                     request._triggerSuccess(responseData);
                 })
                 .catch(error => {
+                    _settle();
                     app.dev.error(`POST request failed: ${error.message}`, 'API');
                     request._triggerFail(error);
                 });
@@ -478,15 +503,21 @@
             logRequest('POST (multipart)', url, callerInfo);
             app.dev.log(`FormData entries: ${JSON.stringify([...formData.entries()])}`, 'API');
 
+            // Every multipart POST is treated as an upload in flight.
+            app.api._pending.uploads++;
+            const _settle = () => { if (app.api._pending.uploads > 0) app.api._pending.uploads--; };
+
             // Execute request with timeout
             executeRequest(url, {
                 method: 'POST',
                 body: formData
             }, 'Multipart')
                 .then(data => {
+                    _settle();
                     request._triggerSuccess(data);
                 })
                 .catch(error => {
+                    _settle();
                     app.dev.error(`Multipart request failed: ${error.message}`, 'API');
                     request._triggerFail(error);
                 });

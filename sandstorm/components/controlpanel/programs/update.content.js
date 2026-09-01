@@ -66,6 +66,20 @@ export function render(os) {
                         { block: {
                             id: 'cp-update-result',
                             style: 'display:none;padding:12px;border-radius:8px;background:var(--theme-backgruondcolorc,#00000040);font-size:12px;color:var(--theme-fontcolor,#fff);'
+                        }},
+
+                        { block: { className: 'line' } },
+                        { block: { className: 'h1', style: 'font-size:13px;', html: _('Update readiness') } },
+                        { block: { className: 'p', style: 'font-size:11px;opacity:.7;',
+                            html: _('What the system would check before switching to a new version. The server makes the final decision.') } },
+
+                        // The live agent panel (rendered by app.updates.panel.render via _refreshPanels)
+                        { block: { id: 'cp-updates-agent-panel', attributes: { 'data-updates-panel': '' } } },
+
+                        // Raw readiness snapshot (dev visibility)
+                        { block: {
+                            id: 'cp-updates-readiness',
+                            style: 'margin-top:10px;padding:10px;border-radius:8px;background:var(--theme-backgruondcolorc,#00000040);font-family:monospace;font-size:10.5px;white-space:pre-wrap;color:var(--theme-fontcolor,#fff);opacity:.85;'
                         }}
                     ]
                 }
@@ -103,6 +117,26 @@ export function render(os) {
                     <div style="opacity:0.55;font-style:italic;font-size:11px;">${_('No updates have been installed.')}</div>`;
             }
         });
+
+        // ── Live update readiness agent ──────────────────────────────────────
+        const agentEl     = document.getElementById('cp-updates-agent-panel');
+        const readinessEl  = document.getElementById('cp-updates-readiness');
+
+        function paintReadiness() {
+            if (!window.app?.updates) return;
+            if (agentEl) app.updates._refreshPanels?.();
+            if (readinessEl) {
+                try { readinessEl.textContent = JSON.stringify(app.updates.readiness.collect(), null, 2); }
+                catch (e) { readinessEl.textContent = String(e); }
+            }
+        }
+        paintReadiness();
+        const _readinessTimer = setInterval(paintReadiness, 3000);
+        // Stop polling the snapshot when the panel leaves the DOM.
+        const _obs = new MutationObserver(() => {
+            if (!document.body.contains(readinessEl)) { clearInterval(_readinessTimer); _obs.disconnect(); }
+        });
+        _obs.observe(document.body, { childList: true, subtree: true });
     }, 0);
 
     return os.ui.body(layout, { programid: 'controlpanel', panelId: 'updates' }).render();
