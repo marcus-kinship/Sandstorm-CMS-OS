@@ -128,7 +128,8 @@ function openSubmenu(item, anchorEl) {
             ? ` data-block-type="${sub.blockType || sub.id}"` + (sub.props ? ` data-block-props='${JSON.stringify(sub.props)}'` : '')
             : '';
         const dragClass = sub.draggable ? ' designer-palette-item' : '';
-        return `<li class="designer-menu-subitem${dragClass}" data-submenu-id="${sub.id}"${dragAttrs}>${iconHTML(icon)}<span>${sub.title || sub.id}</span></li>`;
+        const title = typeof sub.title === 'function' ? sub.title() : sub.title;
+        return `<li class="designer-menu-subitem${dragClass}" data-submenu-id="${sub.id}"${dragAttrs}>${iconHTML(icon)}<span>${title || sub.id}</span></li>`;
     }).join('');
 
     el.addEventListener('click', e => {

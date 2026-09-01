@@ -223,6 +223,9 @@ export function start(os) {
     app.includeModule(app.config.local.ProgramRoot + 'designer/designer_tabs.js')
         .then(mod => { if (mod && typeof mod.init === 'function') mod.init(app); });
 
+    app.includeModule(app.config.local.ProgramRoot + 'designer/designer_grid.js')
+        .then(mod => { if (mod && typeof mod.init === 'function') mod.init(app); });
+
     const dockReady = app.includeModule(app.config.local.ProgramRoot + 'designer/designer_dock.js')
         .then(mod => {
             if (mod && typeof mod.init === 'function') mod.init(app);
@@ -329,6 +332,22 @@ export function start(os) {
                 title: _('Color Picker'),
                 toolIds: ['colorpicker'],
                 click: function () { app.designer.colorPickupTool?.activate(); }
+            });
+
+            app.designer.menu.add({
+                id: 'view', sort: 110, type: 'icon',
+                icon: { type: 'svg', value: '#ic-designer-grid' },
+                title: _('View'),
+                submenu: [
+                    { id: 'grid-system', title: _('Grid System'), icon: '#ic-designer-grid',
+                        click: function () { app.designer.grid?.openDialog(); } },
+                    { id: 'toggle-ruler',
+                        title: function () { return app.designer.grid?.isRulerHidden() ? _('Show ruler') : _('Hide ruler'); },
+                        click: function () { app.designer.grid?.toggleRuler(); } },
+                    { id: 'toggle-guides',
+                        title: function () { return app.designer.grid?.areGuidesHidden() ? _('Show guides') : _('Hide guides'); },
+                        click: function () { app.designer.grid?.toggleGuides(); } }
+                ]
             });
         });
 

@@ -174,6 +174,12 @@ export async function setup(os) {
         content: `<path fill="#fff" d="M19.23 4.77a2.5 2.5 0 0 0-3.54 0l-2.1 2.1-1-1-1.42 1.42 1 1-8.9 8.9L2 21l3.8-1.27 8.9-8.9 1 1 1.42-1.42-1-1 2.1-2.1a2.5 2.5 0 0 0 0-3.54z"/>`
     });
 
+    os.svg.global.load({
+        id: 'ic-designer-grid',
+        viewBox: '0 0 24 24',
+        content: `<path fill="none" stroke="#fff" stroke-width="1.6" d="M3 3h18v18H3zM9 3v18M15 3v18M3 9h18M3 15h18"/>`
+    });
+
     os.program.addInfo("designer", {
         name: () => _("Designer"),
         version: "1.0",

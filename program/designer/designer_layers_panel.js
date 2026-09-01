@@ -262,6 +262,46 @@ function openAddMenu(anchorEl) {
     });
 }
 
+// ── Right-click → Grid System ──────────────────────────────────────────
+// Deliberately minimal (user decision): a single item that opens the same
+// Grid System dialog as the sidebar View menu — not a full add/duplicate/
+// delete context menu. Bound once, delegated off document, since the panel's
+// `.designer-dock-content` is rebuilt on every render.
+
+let gridMenuEl = null;
+
+function closeGridMenu() {
+    gridMenuEl?.remove();
+    gridMenuEl = null;
+}
+
+function openGridMenu(x, y) {
+    closeGridMenu();
+    const el = document.createElement('div');
+    el.className = 'designer-layers-addmenu-wrap';
+    el.style.top = y + 'px';
+    el.style.left = x + 'px';
+    el.innerHTML =
+        `<ul class="designer-layers-addmenu">` +
+            `<li class="designer-layers-addmenu-item" data-grid-open>` +
+                `<span class="designer-layers-addmenu-icon">▦</span><span>${_('Grid System')}</span>` +
+            `</li>` +
+        `</ul>`;
+    document.body.appendChild(el);
+    gridMenuEl = el;
+
+    el.querySelector('[data-grid-open]')?.addEventListener('click', () => {
+        closeGridMenu();
+        app.designer.grid?.openDialog();
+    });
+
+    requestAnimationFrame(() => {
+        const r = el.getBoundingClientRect();
+        if (r.right > window.innerWidth) el.style.left = Math.max(4, window.innerWidth - r.width - 4) + 'px';
+        if (r.bottom > window.innerHeight) el.style.top = Math.max(4, y - r.height) + 'px';
+    });
+}
+
 // ── Bottom bar — shared by both sub-tabs ────────────────────────────────
 
 function selectedNode() {
@@ -457,5 +497,12 @@ export function init(app) {
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.designer-layers-addmenu-wrap') && !e.target.closest('[data-action="add-element"]')) closeAddMenu();
+        if (!e.target.closest('.designer-layers-addmenu-wrap')) closeGridMenu();
     }, true);
+
+    document.addEventListener('contextmenu', (e) => {
+        if (!e.target.closest('[data-dock-id="layers"]')) return;
+        e.preventDefault();
+        openGridMenu(e.clientX, e.clientY);
+    });
 }
