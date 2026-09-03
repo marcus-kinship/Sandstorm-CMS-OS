@@ -274,13 +274,16 @@ export function init(app) {
         toggleRuler:  () => { _state.rulerHidden  = !_state.rulerHidden;  apply(); save(); },
         toggleGuides: () => { _state.guidesHidden = !_state.guidesHidden; apply(); save(); },
 
+        // The full resizable settings window. The quick, inline controls now
+        // live in the toolbar itself — see designer_toolbar.js's grid bar,
+        // toggled by its ▦ button and by the sidebar "View" icon
+        // (app.designer.toolbar.toggleGridBar()), same idiom as the Text tool
+        // swapping the toolbar to text-formatting controls.
         openDialog: () => {
             if (app.designer.gridDialog?.open) {
                 app.designer.gridDialog.open({ parentId: designerWindowId() });
                 return;
             }
-            // Lazy-loaded on first open only — same idiom as designer_groups_panel.js's
-            // openBorderDialogFor (includeModule → mod.init(app) → open).
             app.includeModule(app.config.local.ProgramRoot + 'designer/designer_grid_dialog.js')
                 .then(mod => mod?.init?.(app))
                 .then(() => app.designer.gridDialog.open({ parentId: designerWindowId() }));

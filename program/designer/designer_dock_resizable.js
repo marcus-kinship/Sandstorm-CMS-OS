@@ -36,6 +36,12 @@ export function init(app) {
     const $c = $(containerEl);
 
     function apply() {
+        // Collapsed = a fixed 40px icon rail, nothing to resize.
+        if (app.designer.dock.isCollapsed?.()) {
+            if ($c.hasClass('ui-resizable')) $c.resizable('destroy');
+            return;
+        }
+
         const { minWidth, maxWidth } = computeBounds(app);
 
         if ($c.hasClass('ui-resizable')) {
@@ -45,9 +51,13 @@ export function init(app) {
             handles: 'w',
             minWidth,
             maxWidth,
+            // Kill the collapse/expand width transition while dragging so the
+            // handle tracks the pointer 1:1 (designer_dock.js's CSS).
+            start: function () { containerEl.classList.add('designer-dock-resizing'); },
             resize: function () {
                 containerEl.style.flex = '0 0 auto';
-            }
+            },
+            stop: function () { containerEl.classList.remove('designer-dock-resizing'); }
         });
 
         $c.find('.ui-resizable-w').css({ left: '0px', cursor: 'ew-resize' });

@@ -583,11 +583,172 @@ function homeButtonHTML() {
     );
 }
 
+// "Visa" toggle — always present, right after the home marker. Swaps the
+// toolbar to the Grid bar (grid + ruler + guide controls, wired to
+// app.designer.grid), the same way the Text tool swaps it to the text-
+// formatting bar. Also toggled by the sidebar "View" icon via
+// app.designer.toolbar.toggleGridBar(). Chrome, so it lives in barHTML().
+let gridBarActive = false;
+
+function gridButtonHTML() {
+    return (
+        `<button type="button" class="designer-toolbar-btn designer-toolbar-btn-icon${gridBarActive ? ' active' : ''}" data-action="grid-toggle" title="${_('View')} — ${_('Grid System')}"><svg><use href="#ic-designer-grid"></use></svg></button>` +
+        `<span class="designer-toolbar-divider"></span>`
+    );
+}
+
 function barHTML() {
-    return homeButtonHTML() + barContentHTML();
+    return homeButtonHTML() + gridButtonHTML() + barContentHTML();
+}
+
+// ── Grid bar ────────────────────────────────────────────────────────────
+
+const GRID_UNITS = {
+    columns: [{ value: 'px', label: 'px' }, { value: '%', label: '%' }, { value: 'rem', label: 'rem' }, { value: 'em', label: 'em' }, { value: 'vw', label: 'vw' }],
+    rows:    [{ value: 'px', label: 'px' }, { value: '%', label: '%' }, { value: 'rem', label: 'rem' }, { value: 'em', label: 'em' }, { value: 'vh', label: 'vh' }]
+};
+
+function gridHexColor(c) {
+    const s = String(c || '#FF0000').trim();
+    if (/^#[0-9a-f]{6}$/i.test(s)) return s;
+    if (/^#[0-9a-f]{3}$/i.test(s)) return '#' + s.slice(1).split('').map(x => x + x).join('');
+    return '#FF0000';
+}
+
+function gridSectionHTML(kind, sec) {
+    const sizeVal = kind === 'columns' ? sec.width : sec.height;
+    const gapTitle = _('Gap');
+    const sizeTitle = kind === 'columns' ? _('Column width') : _('Row height');
+    return (
+        `<label class="designer-toolbar-outline-toggle" title="${kind === 'columns' ? _('Show columns') : _('Show rows')}">` +
+            `<input type="checkbox" data-gb="${kind}-show" ${sec.show ? 'checked' : ''}>` +
+            `<span>${kind === 'columns' ? _('Columns') : _('Rows')}</span>` +
+        `</label>` +
+        `<input type="number" class="designer-toolbar-dim-input gb-num" data-gb="${kind}-gap" min="0" value="${sec.gap}" title="${gapTitle}" placeholder="${gapTitle}">` +
+        `<span class="designer-toolbar-dropdown-mount designer-toolbar-dim-unit-mount" data-gb-unit="${kind}-gap"></span>` +
+        `<input type="number" class="designer-toolbar-dim-input gb-num" data-gb="${kind}-size" min="1" value="${sizeVal}" title="${sizeTitle}" placeholder="${sizeTitle}">` +
+        `<span class="designer-toolbar-dropdown-mount designer-toolbar-dim-unit-mount" data-gb-unit="${kind}-size"></span>` +
+        `<input type="color" class="gb-color" data-gb="${kind}-color" value="${gridHexColor(sec.color)}" title="${_('Color')}">` +
+        `<input type="number" class="designer-toolbar-dim-input gb-op" data-gb="${kind}-opacity" min="0" max="100" value="${sec.opacity}" title="${_('Opacity')} %">`
+    );
+}
+
+// Quick settings only — Profile + Columns + ruler/guides. Rows and the
+// per-field detail live in the full Grid System window (sidebar View ▸ Grid
+// System / Layers right-click). "Open the full settings" link at the end.
+let _gridRetries = 0;
+
+function gridBarHTML() {
+    const grid = app.designer.grid;
+    if (!grid?.getState || !grid.getState()) {
+        // designer_grid.js hasn't finished init yet (or failed to load) —
+        // re-render shortly so the bar fills in on its own instead of
+        // sitting empty.
+        if (_gridRetries++ < 20) setTimeout(render, 120);
+        return `<span class="designer-toolbar-empty">${_('Grid System')}…</span>`;
+    }
+    _gridRetries = 0;
+    const s = grid.getState();
+    return (
+        `<span class="designer-toolbar-dropdown-mount designer-toolbar-gb-profile" data-gb-profile title="${_('Profile')}"></span>` +
+        `<span class="designer-toolbar-divider"></span>` +
+        gridSectionHTML('columns', s.columns) +
+        `<span class="designer-toolbar-divider"></span>` +
+        `<label class="designer-toolbar-outline-toggle" title="${_('Show ruler')}">` +
+            `<input type="checkbox" data-gb="ruler" ${grid.isRulerHidden() ? '' : 'checked'}><span>${_('Ruler')}</span>` +
+        `</label>` +
+        `<label class="designer-toolbar-outline-toggle" title="${_('Show guides')}">` +
+            `<input type="checkbox" data-gb="guides" ${grid.areGuidesHidden() ? '' : 'checked'}><span>${_('Guides')}</span>` +
+        `</label>` +
+        `<span class="designer-toolbar-divider"></span>` +
+        `<button type="button" class="designer-toolbar-btn" data-gb="open-full" title="${_('Grid System')}">${_('More…')}</button>`
+    );
+}
+
+function bindGridBar(barEl) {
+    const grid = app.designer.grid;
+    if (!grid?.getState) return;
+    const s = grid.getState();
+    const num = v => { const n = parseFloat(v); return Number.isNaN(n) ? undefined : n; };
+    const markCustom = () => {
+        const p = barEl.querySelector('[data-gb-profile] .ui-dropmenu');
+        if (p) p.value = 'custom';
+    };
+
+    const apply = p => grid.setColumns(p);
+
+    // Profile + the two column unit dropdowns, all app.ui.dropmenu.
+    if (app.ui?.dropmenu) {
+        const pm = barEl.querySelector('[data-gb-profile]');
+        if (pm) pm.innerHTML = app.ui.dropmenu({ options: grid.getProfiles(), selected: s.profile });
+        ['gap', 'size'].forEach(field => {
+            const mount = barEl.querySelector(`[data-gb-unit="columns-${field}"]`);
+            if (!mount) return;
+            const unitKey = field === 'gap' ? 'gapUnit' : 'widthUnit';
+            mount.innerHTML = app.ui.dropmenu({ options: GRID_UNITS.columns, selected: s.columns[unitKey] });
+        });
+        app.ui.dropmenu.initAll();
+        barEl.querySelectorAll('.designer-toolbar-gb-profile .ui-dropmenu, [data-gb-unit] .ui-dropmenu').forEach(el => {
+            el.style.height = '22px';
+            el.style.marginBottom = '0';
+            el.style.fontSize = '10px';
+        });
+
+        barEl.querySelector('[data-gb-profile] .ui-dropmenu')?.addEventListener('change', function () {
+            grid.setProfile(this.value);
+            render();  // gap/width changed with the profile — redraw the bar
+        });
+        ['gap', 'size'].forEach(field => {
+            const el = barEl.querySelector(`[data-gb-unit="columns-${field}"] .ui-dropmenu`);
+            if (!el) return;
+            const unitKey = field === 'gap' ? 'gapUnit' : 'widthUnit';
+            el.addEventListener('change', () => { apply({ [unitKey]: el.value }); markCustom(); });
+        });
+    }
+
+    barEl.querySelector('[data-gb="columns-show"]')?.addEventListener('change', function () {
+        apply({ show: this.checked });
+    });
+    barEl.querySelector('[data-gb="columns-gap"]')?.addEventListener('input', function () {
+        const v = num(this.value); if (v !== undefined) { apply({ gap: Math.max(0, v) }); markCustom(); }
+    });
+    barEl.querySelector('[data-gb="columns-size"]')?.addEventListener('input', function () {
+        const v = num(this.value); if (v !== undefined) { apply({ width: Math.max(1, v) }); markCustom(); }
+    });
+    barEl.querySelector('[data-gb="columns-color"]')?.addEventListener('input', function () {
+        apply({ color: this.value }); markCustom();
+    });
+    barEl.querySelector('[data-gb="columns-opacity"]')?.addEventListener('input', function () {
+        const v = num(this.value);
+        if (v !== undefined) { apply({ opacity: Math.max(0, Math.min(100, v)) }); markCustom(); }
+    });
+
+    barEl.querySelector('[data-gb="open-full"]')?.addEventListener('click', () => app.designer.grid?.openDialog());
+
+    barEl.querySelector('[data-gb="ruler"]')?.addEventListener('change', function () {
+        if (this.checked === grid.isRulerHidden()) grid.toggleRuler();
+    });
+    barEl.querySelector('[data-gb="guides"]')?.addEventListener('change', function () {
+        if (this.checked === grid.areGuidesHidden()) grid.toggleGuides();
+    });
+}
+
+function toggleGridBar() {
+    gridBarActive = !gridBarActive;
+    render();
+}
+
+// Force the grid bar visible (the sidebar "View" icon uses this - it also
+// opens its submenu, so a plain toggle there would flip the bar off on the
+// alternating click that just reopens the menu). The toolbar's own ▦ button
+// still toggles.
+function showGridBar() {
+    if (!gridBarActive) { gridBarActive = true; render(); }
 }
 
 function barContentHTML() {
+    if (gridBarActive) return gridBarHTML();
+
     const node = selectedNode();
 
     if (app.designer.activeTool === 'text' && (!node || node.type === 'text')) {
@@ -602,6 +763,13 @@ function barContentHTML() {
 }
 
 function bindBar(barEl) {
+    barEl.querySelector('[data-action="grid-toggle"]')?.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleGridBar();
+    });
+
+    if (gridBarActive) { bindGridBar(barEl); return; }
+
     const node = selectedNode();
     if (app.designer.activeTool === 'text' && (!node || node.type === 'text')) {
         bindTextBar(barEl, node);
@@ -615,6 +783,7 @@ function bindBar(barEl) {
 function render() {
     const bar = document.getElementById('designerToolbar');
     if (!bar) return;
+    bar.classList.toggle('grid-bar-active', gridBarActive);
     bar.innerHTML = barHTML();
     bindBar(bar);
 }
@@ -625,6 +794,17 @@ function injectCSS() {
     style.id = 'designer-toolbar-style';
     style.textContent = `
         #designerToolbar { gap: 6px; padding: 0 8px; overflow: visible; }
+        /* Grid bar packs a lot into one 26px row — let it scroll sideways on
+           a narrow window rather than clip the rightmost controls. */
+        #designerToolbar.grid-bar-active { overflow-x: auto; overflow-y: hidden; gap: 4px; }
+        #designerToolbar.grid-bar-active::-webkit-scrollbar { height: 4px; }
+        #designerToolbar.grid-bar-active::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+        #designerToolbar.grid-bar-active .designer-toolbar-dim-unit-mount { width: 44px; }
+        #designerToolbar.grid-bar-active .designer-toolbar-outline-toggle span { font-size: 10px; }
+        .designer-toolbar-gb-profile { width: 104px; flex-shrink: 0; }
+        .gb-color { width: 20px; height: 22px; flex-shrink: 0; padding: 0; border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; background: transparent; cursor: pointer; }
+        .gb-num { width: 34px; flex-shrink: 0; }
+        .gb-op { width: 34px; flex-shrink: 0; }
         .designer-toolbar-empty { font-size: 11px; color: #fff; }
         .designer-toolbar-btn { font-size: 11px; background: rgba(0,0,0,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 3px 6px; height: 24px; cursor: default; white-space: nowrap; }
         .designer-toolbar-btn:hover { background: var(--theme-backgruondcolorc, #00000040); }
@@ -698,6 +878,10 @@ export function init(app) {
 
     injectCSS();
     loadDropmenuDep(app);
+
+    // Sidebar "View" icon (designer.js) toggles the grid bar through this.
+    app.designer = app.designer || {};
+    app.designer.toolbar = { toggleGridBar, showGridBar, isGridBarActive: () => gridBarActive };
 
     render();
 

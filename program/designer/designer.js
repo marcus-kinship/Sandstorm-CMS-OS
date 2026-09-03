@@ -26,6 +26,12 @@ export function start(os) {
         resizable: true,
         width: '1100px',
         height: '840px',
+        // Lower than the 1100 default (which windowStart derives from `width`)
+        // so the window can actually be dragged narrow enough for the
+        // responsive workspace rule (designer_workspace.js: right dock forced
+        // to a rail ≤1024px, hidden ≤450px) to do anything.
+        minWidth: '480px',
+        minHeight: '420px',
         menu: {
             options: {
                 position: 'window-title',
@@ -135,6 +141,26 @@ export function start(os) {
                             }
                         }
                     }
+                },
+                View: {
+                    children: {
+                        'Workspace layout': {
+                            id: 'workspaceLayout',
+                            label: _('Workspace layout'),
+                            children: {
+                                'Left sidebar': {
+                                    id: 'wsLeft',
+                                    label: _('Left sidebar'),
+                                    click: function () { app.designer.workspace?.toggleLeft(); }
+                                },
+                                'Right sidebar': {
+                                    id: 'wsRight',
+                                    label: _('Right sidebar'),
+                                    click: function () { app.designer.workspace?.toggleRight(); }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -230,9 +256,9 @@ export function start(os) {
         .then(mod => {
             if (mod && typeof mod.init === 'function') mod.init(app);
 
-            app.designer.dock.add({ id: 'properties', sort: 10, title: _('Properties'), html: `<p>${_('Properties content')}</p>` });
-            app.designer.dock.add({ id: 'history', sort: 20, title: _('History'), html: `<p>${_('History content')}</p>` });
-            app.designer.dock.add({ id: 'layers', sort: 50, title: _('Layers'), html: `<p>${_('Layers content')}</p>` });
+            app.designer.dock.add({ id: 'properties', sort: 10, title: _('Properties'), icon: '#ic-dock-properties', html: `<p>${_('Properties content')}</p>` });
+            app.designer.dock.add({ id: 'history', sort: 20, title: _('History'), icon: '#ic-dock-history', html: `<p>${_('History content')}</p>` });
+            app.designer.dock.add({ id: 'layers', sort: 50, title: _('Layers'), icon: '#ic-layers', html: `<p>${_('Layers content')}</p>` });
 
             return Promise.all([
                 app.includeModule(app.config.local.ProgramRoot + 'designer/designer_dock_sortable.js'),
@@ -259,7 +285,8 @@ export function start(os) {
         .then(() => load('designer_color_picker_window.js'))
         .then(() => load('tools/colorpickup.js'))
         .then(() => load('core/stylesheet.js'))
-        .then(() => load('core/style.js'));
+        .then(() => load('core/style.js'))
+        .then(() => load('designer_workspace.js'));
 
     app.includeModule(app.config.local.ProgramRoot + 'designer/designer_menu.js')
         .then(mod => {
@@ -338,6 +365,11 @@ export function start(os) {
                 id: 'view', sort: 110, type: 'icon',
                 icon: { type: 'svg', value: '#ic-designer-grid' },
                 title: _('View'),
+                // Clicking the icon opens this submenu AND shows the toolbar's
+                // grid bar (designer_menu.js fires a top-level click() right
+                // before opening the flyout — same pattern as the Text Tool
+                // icon defaulting to Normal Text).
+                click: function () { app.designer.toolbar?.showGridBar(); },
                 submenu: [
                     { id: 'grid-system', title: _('Grid System'), icon: '#ic-designer-grid',
                         click: function () { app.designer.grid?.openDialog(); } },

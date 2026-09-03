@@ -180,6 +180,17 @@ export async function setup(os) {
         content: `<path fill="none" stroke="#fff" stroke-width="1.6" d="M3 3h18v18H3zM9 3v18M15 3v18M3 9h18M3 15h18"/>`
     });
 
+    os.svg.global.load({
+        id: 'ic-dock-properties',
+        viewBox: '0 0 24 24',
+        content: `<g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M3 7h11M18 7h3"/><circle cx="16" cy="7" r="2.2"/><path d="M3 17h4M11 17h10"/><circle cx="9" cy="17" r="2.2"/></g>`
+    });
+    os.svg.global.load({
+        id: 'ic-dock-history',
+        viewBox: '0 0 24 24',
+        content: `<g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 1 1 2.3 5.6"/><path d="M4 6v5h5"/><path d="M12 8v4l3 2"/></g>`
+    });
+
     os.program.addInfo("designer", {
         name: () => _("Designer"),
         version: "1.0",

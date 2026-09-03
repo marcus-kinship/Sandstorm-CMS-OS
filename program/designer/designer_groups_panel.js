@@ -555,7 +555,7 @@ export function init(app) {
     injectCSS();
     loadDropmenuDep(app);
 
-    app.designer.dock.add({ id: 'groups', sort: 15, title: _('Groups'), html: panelHTML(selectedNode()) });
+    app.designer.dock.add({ id: 'groups', sort: 15, title: _('Groups'), icon: '#ic-designer-folder', html: panelHTML(selectedNode()) });
 
     app.designer.dock._registerRenderHook(render);
     app.designer._registerRenderHook(render);

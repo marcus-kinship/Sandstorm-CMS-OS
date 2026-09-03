@@ -17,6 +17,9 @@ function bind(containerEl) {
     const $c = $(containerEl);
     if ($c.hasClass('ui-sortable')) $c.sortable('destroy');
 
+    // Collapsed = an icon rail; no panel titles to drag by (v1).
+    if (app.designer.dock.isCollapsed?.()) return;
+
     $c.sortable({
         items: '> .designer-dock-panel',
         handle: '.dock-drag-handle',

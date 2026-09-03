@@ -10,6 +10,9 @@
  * show checkbox, then **gap** and **size** (column width / row height) — each
  * of those two a number input with **its own unit dropdown**
  * (`app.ui.dropmenu` — px / % / rem / em / vw·vh) — plus colour and opacity.
+ * A final row toggles the ruler and the guide lines. (The toolbar has its
+ * own compact inline version of these controls — see designer_toolbar.js's
+ * grid bar; this window is the full/resizable one.)
  *
  * Every control commits **immediately** — no OK/Cancel, matching every other
  * Designer style control. Changes go straight to `app.designer.grid`
@@ -138,6 +141,15 @@ function renderHTML(state) {
             ${sectionHTML('columns', state.columns)}
             <div class="dgd-sep"></div>
             ${sectionHTML('rows', state.rows)}
+            <div class="dgd-sep"></div>
+            <label class="dgd-check-row">
+                <input type="checkbox" class="dgd-ruler-show" ${app.designer.grid.isRulerHidden() ? '' : 'checked'}>
+                <span>${_('Show ruler')}</span>
+            </label>
+            <label class="dgd-check-row">
+                <input type="checkbox" class="dgd-guides-show" ${app.designer.grid.areGuidesHidden() ? '' : 'checked'}>
+                <span>${_('Show guides')}</span>
+            </label>
         </div>
     `;
 }
@@ -218,6 +230,19 @@ function wireDialog(root) {
 
     bindSection('columns', partial => app.designer.grid.setColumns(partial));
     bindSection('rows', partial => app.designer.grid.setRows(partial));
+
+    // ── Ruler / guides ─────────────────────────────────────────────────
+    // The checkbox tracks "visible"; toggleRuler/toggleGuides flip "hidden",
+    // so only act when the two disagree (also keeps a programmatic toggle
+    // from another surface in sync via syncInputs below).
+    const rulerBox = root.querySelector('.dgd-ruler-show');
+    const guidesBox = root.querySelector('.dgd-guides-show');
+    rulerBox.addEventListener('change', () => {
+        if (rulerBox.checked === app.designer.grid.isRulerHidden()) app.designer.grid.toggleRuler();
+    });
+    guidesBox.addEventListener('change', () => {
+        if (guidesBox.checked === app.designer.grid.areGuidesHidden()) app.designer.grid.toggleGuides();
+    });
 }
 
 function open() {
