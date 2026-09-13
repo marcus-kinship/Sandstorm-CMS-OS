@@ -3,8 +3,9 @@
  * @description Central seam for everything Explorer's "/RealStorage" mount
  * talks to the real server-side filesystem through — the JSAPI gateway at
  * app.config.local.jsapiLink (see site/demo/jsapi/demo_jsapi.class.php).
- * fileops.js, dragdrop.js, and core.js all stay unaware of the JSAPI's
- * action names/shapes; they only ever call the functions exported here.
+ * fileops.js, dragdrop.js, setup/upload.js, and core.js all stay unaware of
+ * the JSAPI's action names/shapes; they only ever call the functions
+ * exported here.
  *
  * Everything under "/RealStorage" in the client-side `_fs` tree is a CACHE
  * of what the server actually has, populated lazily (ensureRealFolderLoaded)
@@ -121,5 +122,46 @@ export async function realDelete(path) {
     await app.api.post(app.config.local.jsapiLink, {
         action: 'file.delete',
         data: { path: toServerRelPath(path) }
+    });
+}
+
+/**
+ * Uploads a real, binary-capable `File` (e.g. one dropped from the user's
+ * own OS onto a `/RealStorage` folder — see setup/upload.js) by base64-
+ * encoding it and reusing the same `file.write` action `realWrite` uses for
+ * plain-text content, with an `encoding: 'base64'` marker so the (external,
+ * not part of this repo — see this file's header) JSAPI backend knows to
+ * decode before saving. `realWrite` itself is left untouched: its callers
+ * (fileops.js's `newFile`) pass a plain string they already have in memory,
+ * and forcing every one of them through a base64 round-trip would be pure
+ * overhead for that path.
+ *
+ * Same reject-on-failure / "caller mutates `_fs` only after this resolves"
+ * contract as `realWrite`.
+ *
+ * @param {string} path - Explorer-space path under /RealStorage
+ * @param {File} file
+ * @returns {Promise<{path: string, size: string}>}
+ */
+export async function realUpload(path, file) {
+    const content = await _readAsBase64(file);
+    const result = await app.api.post(app.config.local.jsapiLink, {
+        action: 'file.write',
+        data: { path: toServerRelPath(path), content, encoding: 'base64' }
+    });
+    return result.data;
+}
+
+/**
+ * @param {File} file
+ * @returns {Promise<string>} the file's content, base64-encoded (no
+ *   `data:...;base64,` prefix — just the payload the server needs to decode).
+ */
+function _readAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(String(reader.result).split(',', 2)[1] || '');
+        reader.onerror = () => reject(reader.error || new Error('File read failed'));
+        reader.readAsDataURL(file);
     });
 }

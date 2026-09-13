@@ -117,6 +117,26 @@ export function isRealStoragePath(path) {
 }
 
 /**
+ * The inverse of `parseSizeToBytes` below — formats a raw byte count into
+ * the same "1.2 MB" / "512 KB" style already stored on every other fs entry
+ * (the sample data in filesystem.json, and every existing size string this
+ * module's own `parseSizeToBytes` already knows how to read back). Used by
+ * `setup/upload.js`/`setup/fileops.js`'s `uploadFile` so a dropped file's
+ * size renders the same way as everything else in the list/grid/meta panel,
+ * instead of a raw, unrounded byte count.
+ *
+ * @param {number} bytes
+ * @returns {string}
+ */
+export function formatBytes(bytes) {
+    if (!bytes || bytes < 1024) return (bytes || 0) + ' B';
+    const units = ['KB', 'MB', 'GB'];
+    let n = bytes / 1024, i = 0;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return n.toFixed(n < 10 ? 1 : 0) + ' ' + units[i];
+}
+
+/**
  * Parses the formatted size strings stored on fs entries (e.g. "1.2 MB", "512 KB") back to bytes.
  *
  * @param {string} sizeStr

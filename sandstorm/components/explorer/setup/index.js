@@ -25,6 +25,7 @@ import { registerFileOps } from './fileops.js';
 import { registerIconMenu } from './icon_menu.js';
 import { registerDialogs } from './dialogs.js';
 import { registerShortcuts } from './shortcuts.js';
+import { registerUpload } from './upload.js';
 
 export function setup(os) {
     registerIcons(os);
@@ -33,4 +34,5 @@ export function setup(os) {
     registerFileOps(os);
     registerIconMenu(os);
     registerShortcuts(os);
+    registerUpload(os);
 }

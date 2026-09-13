@@ -15,8 +15,8 @@
  *
  * @module components/explorer/setup/fileops
  */
-import { isRealStoragePath } from '../window/fsutil.js';
-import { realWrite, realDelete } from '../window/realfs.js';
+import { isRealStoragePath, formatBytes } from '../window/fsutil.js';
+import { realWrite, realDelete, realUpload } from '../window/realfs.js';
 
 /**
  * Registers `app.explorer.newFolder`/`remove`/`newFile`/`rename`/`openFile`/
@@ -298,6 +298,90 @@ export function registerFileOps(os) {
             app.dev.log(`newFile: "${cleanPath}"`, 'Explorer');
             app.explorer._refreshAll(parentPath);
         }
+    };
+
+    // ── app.explorer.uploadFile(destPath, file) ───────────────────────────────
+    // Boot-safe: writes ONE real, binary-capable OS `File` (dropped from
+    // outside the browser onto the Desktop or an Explorer window — see
+    // setup/upload.js) into destPath's folder. Promise-based, unlike the
+    // other ops above, so a caller driving a progress UI over many files at
+    // once (setup/upload.js's own progress window) can await each in turn
+    // and report success/failure per file — the same shape realWrite/
+    // realRead/realDelete already use.
+    //
+    // Auto-dedupes the name ("photo.jpg" -> "photo (1).jpg") instead of
+    // rejecting on a collision the way newFile() does above: failing an
+    // entire multi-file drop over one name clash (or interrupting it to ask
+    // the user mid-drop) is worse than simply not overwriting anything.
+    app.explorer.uploadFile = function(destPath, file) {
+        return new Promise((resolve, reject) => {
+            const parentNode = app.explorer._getNode(destPath);
+            if (!parentNode || parentNode.type !== 'folder') {
+                reject(new Error(_('Destination folder not found') + ': ' + destPath));
+                return;
+            }
+
+            const dot  = file.name.lastIndexOf('.');
+            const base = dot > 0 ? file.name.slice(0, dot) : file.name;
+            const ext  = dot > 0 ? file.name.slice(dot + 1) : '';
+            let fileName = file.name, i = 1;
+            while (parentNode.children[fileName]) {
+                fileName = ext ? `${base} (${i++}).${ext}` : `${base} (${i++})`;
+            }
+            const cleanPath = (destPath === '/' ? '' : destPath) + '/' + fileName;
+
+            if (isRealStoragePath(cleanPath)) {
+                realUpload(cleanPath, file)
+                    .then(result => {
+                        parentNode.children[fileName] = {
+                            type: 'file',
+                            size: result.size,
+                            modified: new Date().toISOString().slice(0, 10),
+                            ext
+                        };
+                        app.dev.log(`uploadFile (real): "${cleanPath}"`, 'Explorer');
+                        app.explorer._refreshAll(destPath);
+                        resolve();
+                    })
+                    .catch(e => reject(e instanceof Error ? e : new Error(e?.message || _('Upload failed'))));
+                return;
+            }
+
+            // Simulated tree: only read the dropped bytes into memory (as a
+            // data URL) for files the list/grid/meta panel can actually show
+            // a real thumbnail for — icons.js's fileIcon() convention is
+            // entry.url + extInfo[ext].thumbnail. For everything else,
+            // holding a data URL in memory would just be wasted cost for a
+            // file that's never previewable anyway.
+            const wantsThumb = !!app.program?.extInfo?.[ext.toLowerCase()]?.thumbnail;
+
+            const _commit = (url) => {
+                parentNode.children[fileName] = {
+                    type: 'file',
+                    size: formatBytes(file.size),
+                    modified: new Date().toISOString().slice(0, 10),
+                    ext,
+                    ...(url ? { url } : {}),
+                };
+                app.dev.log(`uploadFile: "${cleanPath}"`, 'Explorer');
+                app.explorer._refreshAll(destPath);
+
+                const form = new FormData();
+                form.append('path', cleanPath);
+                form.append('file', file);
+                app.api.multiFormData('/api/fs/upload', form)?.success?.(() => {})?.fail?.(() => {});
+                resolve();
+            };
+
+            if (wantsThumb) {
+                const reader = new FileReader();
+                reader.onload  = () => _commit(String(reader.result));
+                reader.onerror = () => _commit(null);
+                reader.readAsDataURL(file);
+            } else {
+                _commit(null);
+            }
+        });
     };
 
     // Public pointer for inline file creation (set by each start instance)

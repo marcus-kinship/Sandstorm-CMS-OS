@@ -38,11 +38,14 @@ import { navigate } from './core.js';
 import { isRealStoragePath } from './fsutil.js';
 import { ensureRealFolderLoaded } from './realfs.js';
 
-const DROP_TARGET_SELECTOR = [
+// Exported alongside resolveDropTargetPath (same reason: setup/upload.js's
+// native OS-file-drop handler needs to hit-test against exactly this same
+// set of elements, not a second copy of it).
+export const DROP_TARGET_SELECTOR = [
     '.exp-tree-row[data-folder="true"]',
     '.exp-grid-item[data-folder="true"]',
     '.exp-row[data-folder="true"]',
-    '.desktop-icon[data-kind="fs"]', // filtered to folders only in _resolveDropTargetPath
+    '.desktop-icon[data-kind="fs"]', // filtered to folders only in resolveDropTargetPath
     '.desktop-icons',                // empty desktop space → /Desktop
     '.exp-list-body',                // empty space within a window's own list/grid → that window's current folder
 ].join(', ');
@@ -54,10 +57,15 @@ const DROP_TARGET_SELECTOR = [
  * destination fs path, or `null` if it isn't a valid folder to drop into
  * (e.g. a desktop icon backed by a file, not a folder).
  *
+ * Exported (not just used internally) so `setup/upload.js`'s native
+ * OS-file-drop handler can resolve the SAME set of drop targets through
+ * the SAME logic — one definition of "what counts as a droppable folder
+ * target", rather than a second copy that could drift from this one.
+ *
  * @param {HTMLElement|null} tgt
  * @returns {string|null}
  */
-function _resolveDropTargetPath(tgt) {
+export function resolveDropTargetPath(tgt) {
     if (!tgt) return null;
     if (tgt.classList.contains('desktop-icons')) return '/Desktop';
     if (tgt.dataset.fspath) {
@@ -94,14 +102,14 @@ export function bindDragDrop(state, wid, listBody) {
                 _desktopIcons()?.classList.add('dd-drop-active');
             },
             onOver(items, tgt) {
-                const tp = _resolveDropTargetPath(tgt);
+                const tp = resolveDropTargetPath(tgt);
                 if (!tp || tp === state.path) return false;
                 if (items.some(el => el.dataset.path === tp)) return false;
                 return true;
             },
             onDrop(items, tgt, e) {
                 _desktopIcons()?.classList.remove('dd-drop-active');
-                const toPath = _resolveDropTargetPath(tgt);
+                const toPath = resolveDropTargetPath(tgt);
                 if (!toPath || toPath === state.path) return;
                 if (items.some(el => el.dataset.path === toPath)) return;
                 const fileItems = items.map(el => ({
