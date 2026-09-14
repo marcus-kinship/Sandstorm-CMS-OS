@@ -9,8 +9,8 @@
  *
  * Split into `taskbar/notify.js`, `taskbar/icons.js`,
  * `taskbar/statusicons.js`, `taskbar/addtotaskbar.js`,
- * `taskbar/windowanim.js`, `taskbar/clock.js`, `taskbar/showdesktop.js`,
- * `taskbar/build.js`, and `taskbar/core.js` — this file is now just the side-effect entry point
+ * `taskbar/hoverpreview.js`, `taskbar/windowanim.js`, `taskbar/clock.js`,
+ * `taskbar/showdesktop.js`, `taskbar/build.js`, and `taskbar/core.js` — this file is now just the side-effect entry point
  * `load.js`'s systemfiles list imports, unchanged path, same external
  * behavior. The browser's native ES module loader fetches every
  * statically-imported sibling below in parallel; each executes (in the
@@ -23,6 +23,7 @@ import "./notify.js";
 import "./icons.js";
 import "./statusicons.js";
 import "./addtotaskbar.js";
+import "./hoverpreview.js";
 import "./windowanim.js";
 import "./clock.js";
 import "./showdesktop.js";

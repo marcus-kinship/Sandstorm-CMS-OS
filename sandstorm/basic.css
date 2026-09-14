@@ -436,16 +436,32 @@ input:focus {
    ring) rather than a single color, since the wallpaper/theme can be
    anything a user picks in Control Panel — this stays visible either way,
    without needing to detect light vs dark first. :focus (not :focus-visible)
-   above still suppresses the native outline on a plain mouse click. */
-:focus-visible {
+   above still suppresses the native outline on a plain mouse click.
+   Excludes input/textarea/select: those three match :focus-visible on ANY
+   focus per spec (not just keyboard), so this generic catch-all would apply
+   the ring on a plain mouse click regardless of the dedicated, properly
+   gated rule for them further below — they're handled there instead. */
+:focus-visible:not(input, textarea, select) {
     outline: 2px solid #fff;
     outline-offset: 2px;
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.55);
 }
 
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible,
+/* input/textarea/select match :focus-visible on ANY focus per spec, not just
+   keyboard - unlike button/[tabindex] below, where native :focus-visible
+   already excludes plain mouse clicks correctly on its own. Gated with
+   .input-modality-mouse (set by ui.js's pointerdown/Tab tracking) so these
+   three specifically only get the ring for real keyboard navigation - same
+   pattern login.css already uses for its own inputs, just not yet applied
+   here (this generic rule was the still-open gap that comment described). */
+html:not(.input-modality-mouse) input:focus-visible,
+html:not(.input-modality-mouse) textarea:focus-visible,
+html:not(.input-modality-mouse) select:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.55);
+}
+
 button:focus-visible,
 [tabindex]:focus-visible {
     outline: 2px solid #fff;

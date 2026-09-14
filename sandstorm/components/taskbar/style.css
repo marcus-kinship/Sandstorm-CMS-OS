@@ -548,3 +548,138 @@
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
 }
+
+/* Hover preview (taskbar/hoverpreview.js) - shown above a task icon that has
+   multiple open windows. Same glass "Dark Bevel" surface as .contextMenu
+   (sandstorm/basic.css) for visual consistency, laid out as a horizontal
+   strip of tiles instead of a vertical row list. */
+/* Deliberately more opaque than .contextMenu's own 0.3/0.2 gradient (which
+   this was originally copied from) - that pattern reads fine elsewhere in
+   the app, but this panel floats directly above the taskbar with nothing
+   else darkening what's behind it (unlike e.g. the Shift+W switcher's cards,
+   which sit on top of that overlay's own full-screen dark backdrop) - over
+   a bright wallpaper, backdrop-filter blur alone left it looking washed-out/
+   light instead of dark glass. */
+/* 0.9/0.85 (previous attempt) read as a solid black box - too far the other
+   way. This matches the app's own established "more opaque than base glass"
+   variant (sandstorm/basic.css's `.window .window-list .window-header .icon
+   .control-menu` background) - readable/dark without going fully solid. */
+.taskbar-preview {
+    display: flex;
+    gap: 6px;
+     background: linear-gradient(144deg, var(--theme-backgruondcolora-o, rgba(37, 37, 37, 0.2)) 0%, var(--theme-backgruondcolorb-o, rgba(10, 10, 10, 0.2)) 47%);
+    box-shadow: 1px 1px 1px #ffffff29, -1px -1px 1px #ffffff29;
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 8px;
+    position: absolute;
+    color: white;
+    z-index: 500;
+}
+
+.taskbar-preview-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 160px;
+    padding: 6px;
+    border-radius: 8px;
+    background: transparent;
+    cursor: default;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.taskbar-preview-tile:hover {
+
+}
+
+/* Per-tile close button - top-right corner, same visual treatment as a real
+   window's own title-bar close control (sandstorm/components/ui.css's
+   `.window .window-list .controls div` + `.close`): a small circle with a
+   subtle hover backdrop and a centered 9px close glyph. */
+.taskbar-preview-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: default;
+}
+
+.taskbar-preview-close::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--theme-backgruondcolorc, #00000040);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: -1;
+}
+
+.taskbar-preview-tile:hover .taskbar-preview-close::after {
+    opacity: 1;
+}
+
+.taskbar-preview-close svg {
+    width: 9px;
+    height: 9px;
+}
+
+/* Real window-content thumbnail (see app.ui.buildWindowThumbnail, exposed
+   by windowswitcher.js) - same idea as that Shift+W switcher's own
+   .ws-thumb-wrap, just sized for this smaller taskbar preview. The clone
+   buildWindowThumbnail appends fills this box itself (scaled + centered);
+   the dark placeholder background only shows through letterboxing or the
+   brief moment before the clone is built. */
+.taskbar-preview-thumb-wrap {
+    position: relative;
+    width: 100%;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+ 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+/* Icon + title row, left-aligned in the tile's top-left corner (not
+   centered like the old icon-less title-only version). */
+.taskbar-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.taskbar-preview-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+}
+
+.taskbar-preview-icon svg,
+.taskbar-preview-icon img {
+    width: 100%;
+    height: 100%;
+}
+
+.taskbar-preview-title {
+    font-size: 11px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1 1 auto;
+}

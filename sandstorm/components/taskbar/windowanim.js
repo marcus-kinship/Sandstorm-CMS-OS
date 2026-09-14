@@ -97,6 +97,16 @@
 
                 $window.removeClass("maximized").addClass("minimized");
 
+                // Minimizing never goes through app.setActiveWindow (nothing is
+                // being focused), so without this the taskbar icon kept showing
+                // .active for a window that's no longer even visible - stale
+                // highlight bug. Only clears when the MINIMIZED window was the
+                // active one; minimizing some other, already-inactive window
+                // must not touch whichever icon is genuinely still active.
+                if (app.config.local.activeWindowId === windowId && app.desktop?.taskbar?.clearActiveTaskIcon) {
+                    app.desktop.taskbar.clearActiveTaskIcon();
+                }
+
                 if (app.exists("app.program.updateWindowStatus")) {
                     if (!$window.hasClass("single")) {
                         var id = windowId.replace(/-\d+$/, "");

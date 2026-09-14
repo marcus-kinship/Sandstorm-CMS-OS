@@ -343,6 +343,16 @@
         if (comboDown) { comboDown = false; cancelSwitcher(); }
     });
 
+    // Exposed so other real-content-thumbnail needs (currently:
+    // taskbar/hoverpreview.js's multi-window hover preview) can reuse the
+    // exact same clone-and-scale logic instead of duplicating it - same
+    // function reference, not a copy, so a future fix here benefits both
+    // call sites automatically. `app.ui` isn't locked as a whole namespace
+    // (only specific sub-namespaces like ui.window.* are), so a plain
+    // property add is safe regardless of what else has loaded yet.
+    app.ui = app.ui || {};
+    app.ui.buildWindowThumbnail = buildThumbnail;
+
     app.addCSS("windowswitcher", `
         #window-switcher-overlay {
             position: fixed;

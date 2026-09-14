@@ -105,6 +105,10 @@ app.setActiveWindow = function (windowId) {
     $(`#${windowId}-win`).addClass("active");
     this.config.local.activeWindowId = windowId;
 
+    if (app.desktop?.taskbar?.setActiveTaskIcon) {
+        app.desktop.taskbar.setActiveTaskIcon(windowId);
+    }
+
     app.ui.windows.functions.getOrder({
         applyZ: true,
         baseZ: 5000,

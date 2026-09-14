@@ -195,6 +195,57 @@
         },
 
         /**
+         * Reflects the currently-focused window's program onto the taskbar as the
+         * `.active` task icon. Called from `app.setActiveWindow` (see `state/store.js`)
+         * so a focus-only change (e.g. clicking an already-open window's title bar,
+         * with no window opening/closing) updates the taskbar immediately, rather than
+         * waiting for the next unrelated `createTaskbarIcons()` refresh. Also stores
+         * `config.activeProgramId` so `createTaskbarIcons()` itself can reapply the class
+         * on its own refresh passes - it unconditionally overwrites each icon's
+         * `className` from `icon.class` (see that method's own comment), which would
+         * otherwise silently wipe out an `.active` class added only here.
+         * @param {string} windowId - Logical window ID (without the `-win` suffix).
+         */
+        setActiveTaskIcon: function (windowId) {
+            const windowElement = document.getElementById(`${windowId}-win`);
+            const classList = windowElement ? windowElement.className.split(' ') : [];
+            const pidClass = classList.find(cls => cls.startsWith('pid-'));
+            const programId = pidClass ? pidClass.substring(4) : null;
+
+            document.querySelectorAll('.taskbar-s .blockicon.active').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            if (programId) {
+                const icon = document.getElementById(`pid-${programId}-task`);
+                if (icon) icon.classList.add('active');
+            }
+
+            app.desktop.taskbar.config.activeProgramId = programId;
+        },
+
+        /**
+         * Clears the taskbar's `.active` highlighting entirely - no task icon reflects
+         * a focused window. Used when the previously-active window is minimized:
+         * `app.setActiveWindow` is never called in that path (minimizing isn't
+         * focusing anything), so without this the old icon kept showing `.active`
+         * for a window that's no longer even visible - stale state, same bug class
+         * `runstate`/`hidstate` already guard against elsewhere. Matches real
+         * taskbar behavior: minimizing the focused window leaves no icon "pressed"
+         * until something else is actually focused. Does not touch
+         * `app.config.local.activeWindowId` itself (broader focus-routing state
+         * outside the taskbar's own concern) - purely the taskbar's own visual
+         * tracking (`config.activeProgramId` + the DOM `.active` class).
+         */
+        clearActiveTaskIcon: function () {
+            document.querySelectorAll('.taskbar-s .blockicon.active').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            app.desktop.taskbar.config.activeProgramId = null;
+        },
+
+        /**
          * Reconciles the `.tasks` container with the current icon list instead of tearing
          * it down and rebuilding from scratch. Called by `overflow.handle()` — first without
          * a limit (to measure widths), then again with a limit once overflow count is known.
@@ -306,6 +357,10 @@
                 let $win = $(".pid-" + icon.programid);
                 if ($win.length) {
                     taskIconDiv.classList.add("runstate");
+                }
+
+                if (icon.programid && icon.programid === this.config.activeProgramId) {
+                    taskIconDiv.classList.add("active");
                 }
 
                 const expectedNext = previousNode ? previousNode.nextSibling : container.firstChild;

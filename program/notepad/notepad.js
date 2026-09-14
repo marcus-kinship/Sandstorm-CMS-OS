@@ -158,7 +158,7 @@ export function start(os) {
                                     flex: "1",
                                     width: "100%",
                                     padding: "10px",
-                                    border: "none",
+                                    border: "1px solid rgba(0, 0, 0, 0.15)",
                                     outline: "none",
                                     background: "#ffffff",
                                     color: "#000000",

@@ -65,6 +65,14 @@ export async function _performWindowClose(windowElement, programId, options = {}
     const windowId = windowElement.attr("id")?.replace("-win", "");
     if (!windowId) return null;
 
+    // Same stale-taskbar-highlight gap as minimizing (see windowanim.js's
+    // animateWindowToTaskbar): closing never goes through app.setActiveWindow
+    // either, so without this the taskbar icon kept showing `.active` for a
+    // window that no longer exists at all once it's closed.
+    if (windowId === app.config.local.activeWindowId && app.desktop?.taskbar?.clearActiveTaskIcon) {
+        app.desktop.taskbar.clearActiveTaskIcon();
+    }
+
     clearWindowFromAllZones(windowId);
 
     const storedWindowObj = app.store.get(windowElement[0]);
