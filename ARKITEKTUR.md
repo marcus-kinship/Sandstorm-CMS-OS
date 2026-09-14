@@ -184,6 +184,8 @@ Most programs with imperative, non-re-renderable windows (Notepad, Mail, Formbui
 
 In `style.css`: `.ui-sortable-helper` is excluded from the transform transition (the actively dragged element should not lag behind the mouse). `#showDesktopBtn`'s base rule (6px vertical strip + `border-left`) is turned into a horizontal strip + `border-top` in left/right taskbar mode, where the `.right` container becomes a column.
 
+`app.setActiveWindow` (`state/store.js`) notifies `taskbar.setActiveTaskIcon(windowId)` on every focus change, toggling `.active` on the focused program's icon; `clearActiveTaskIcon()` is called separately from `windowanim.js` (minimize) and `ui/window/lifecycle.js` (close), since neither of those goes through `setActiveWindow`. `hoverpreview.js`: hovering an icon with 2+ open windows shows a small panel with one tile per window, reusing `windowswitcher.js`'s (Shift+W switcher) real-content-thumbnail logic via an exposed `app.ui.buildWindowThumbnail`, rather than a second implementation. This file — like `windowswitcher.js` — is loaded before `js/jquery-3.7.1.min.js` in `load.js`'s systemfiles order, so it uses plain DOM APIs only at its top level; `$` is fine inside functions that run later, at actual interaction time. Full history of both features (including the visual-styling iterations and the bugs hit along the way) is in `NOTES.md`.
+
 ---
 
 ## 7. The Start menu (`sandstorm/components/startmenu/*`)

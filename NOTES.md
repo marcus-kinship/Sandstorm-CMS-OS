@@ -146,6 +146,110 @@ doesn't proxy it correctly), so the pristine native event is pulled out via
 
 ---
 
+# sandstorm/components/taskbar/NOTES.md
+
+# sandstorm/components/taskbar — implementation notes
+
+## icons.js — active-icon highlight
+
+`app.setActiveWindow` (`state/store.js`) calls `taskbar.setActiveTaskIcon(windowId)` on every
+focus change, toggling `.active` on the focused window's task icon. That alone isn't enough:
+`createTaskbarIcons()` unconditionally overwrites `taskIconDiv.className` from `icon.class` on
+every refresh pass (see that method's own comment on why icon DOM nodes are kept in place rather
+than torn down and rebuilt), which would silently wipe out an `.active` class added only via the
+one-off `setActiveTaskIcon` call. Fixed by also stashing the active program id in
+`config.activeProgramId` and re-applying `.active` from that inside `createTaskbarIcons()`'s own
+per-icon loop — the same "derive it fresh every pass" treatment `runstate` already gets.
+
+Minimizing and closing a window never go through `setActiveWindow` at all (nothing is being
+focused by either action) — without an explicit `clearActiveTaskIcon()` call added to
+`taskbar/windowanim.js`'s `animateWindowToTaskbar` (minimize) and
+`ui/window/lifecycle.js`'s `_performWindowClose` (every close path funnels through this one
+function), the icon kept showing `.active` for a window that was no longer even visible. Both
+call sites guard on `app.config.local.activeWindowId === windowId` first, so minimizing/closing
+some *other*, already-inactive window never clears a genuinely-still-active icon.
+
+Visual style went through several live-tested rounds before landing on a plain
+`background-color: var(--theme-backgruondcolorc, #00000040)`, no border. A border+bg combo read
+as too busy; a 5%-white bg looked pale/washed out against the taskbar's own glass; a two-layer
+2px-offset bg (meant to read as a soft "doubled" edge) was overcomplicated and got reverted.
+Worth knowing for next time: this app's actual theme config (`index.html`'s
+`backgruondColorC: "#00000040"`) is identical to `--theme-backgruondcolorc`'s CSS fallback value
+— so comparing against the fallback tells you nothing about what it'll really look like; the
+value has to be checked live.
+
+## hoverpreview.js — multi-window hover preview
+
+Hovering a task icon with 2+ open windows shows a small panel above it with one tile per window:
+icon+title (top-left), a real content thumbnail, and a per-tile close button (top-right, styled
+like the real window-close control). Click a tile to activate that window. A single/no-window
+icon still just gets the existing plain tooltip — a preview panel is only worth it once an icon
+alone can no longer tell two windows apart.
+
+Thumbnails reuse `windowswitcher.js`'s (Shift+W switcher) `buildThumbnail` function — exposed as
+`app.ui.buildWindowThumbnail`, the *same* function reference, rather than duplicating its
+clone-and-scale-and-letterbox logic (Shadow DOM rendering, form-field/canvas value sync, etc. —
+see that file's own notes). Its signature expects a `{el: <realElement>}` wrapper object (it only
+ever reads `.el` off it, matching the switcher's own "candidate" shape) — passing the raw element
+directly throws immediately. The clone includes the window's own title bar by design (the
+switcher wants that for its cards); for this smaller preview it reads as a stray dark strip at
+this scale, so it's hidden after the fact by reaching into the clone's own `shadowRoot`
+(`buildThumbnail` renders into `mode:"open"` shadow DOM) and setting `display:none` on
+`.window-list` there — a targeted per-caller tweak rather than forking the shared function.
+
+Load-order broke boot once during development: `load.js`'s `systemfiles` list loads
+`taskbar/index.js` (and everything it statically imports, this file included) *before*
+`js/jquery-3.7.1.min.js`. A top-level `$(document).on(...)` call — i.e. jQuery used at
+module-evaluation time, not inside a function that only runs later — threw `$ is not defined`
+immediately and broke the entire boot sequence. `windowswitcher.js`, loaded in that same early
+slot, avoids jQuery entirely for exactly this reason. Fixed by delegating via plain
+`document.addEventListener("mouseover"/"mouseout", ...)` with manual
+`relatedTarget`/`closest()` boundary checks (the standard vanilla polyfill for delegated
+mouseenter/mouseleave, which don't natively bubble) — `$` is still fine to use *inside* any
+function here that only runs later, at actual interaction time, just never at the file's top
+level.
+
+`taskbar.menu.collectMenuData(id, [], true)` (the existing `get:true` mode, previously unused
+anywhere) always appends a "close all windows"/"close window" entry (`closeAll: true`) to its
+return value regardless of the `get` flag — has to be filtered out
+(`.filter(w => !w.closeAll)`) before treating the array as a plain per-window list, or that entry
+renders as a bogus extra tile.
+
+The panel guards against ever showing while a right-click `.contextMenu` is open, checked in two
+places: before scheduling the show-timer at all, and again right before it actually fires. The
+second check matters even with the first one in place — a stray sub-pixel cursor shift from the
+right-click itself (or the menu's DOM appearing under an otherwise-still cursor) can re-fire a
+fresh `mouseover` on the icon *after* the menu is already open, scheduling a brand new timer that
+nothing else would cancel. `_remove()` also always cancels a pending show-timer, not just an
+already-rendered panel — without that, a click or right-click landing in the gap between hovering
+and the panel actually rendering left the timer free to fire afterward anyway, popping the
+preview up on top of whatever the click had just opened.
+
+---
+
+# sandstorm/basic.css — implementation notes
+
+## `:focus-visible` on input/textarea/select showed the keyboard ring on a plain mouse click
+
+`input`, `textarea`, and `select` match `:focus-visible` on *any* focus per the CSS spec, not
+just keyboard — unlike `button`/`[tabindex]`, where the browser's own `:focus-visible` heuristic
+already excludes plain mouse clicks correctly on its own. The app already has the fix for this
+gap (`.input-modality-mouse`, toggled on `document`'s `pointerdown`/Tab-`keydown` in `ui.js`),
+but it had only ever been applied to `login.css`'s own input fields — the generic, app-wide
+focus-ring rules in `basic.css` were never gated, so *any* text field anywhere (first reported on
+Notepad's editor textarea) showed the keyboard-only ring on a plain mouse click.
+
+Two separate rules needed the fix, not one — easy to miss the second: a specific
+`input:focus-visible, textarea:focus-visible, select:focus-visible { ... }` rule, *and* a
+completely generic bare `:focus-visible { ... }` catch-all with no element qualifier at all
+(which therefore also matches input/textarea/select, unconditionally). Gating only the specific
+rule left the bug in place, since the generic one kept applying the same ring independently.
+Fixed by gating the specific rule behind `html:not(.input-modality-mouse)` and excluding
+input/textarea/select from the generic one instead (`:focus-visible:not(input, textarea,
+select)`), so those three are handled exclusively by the gated rule.
+
+---
+
 # sandstorm/components/explorer/NOTES.md
 
 # sandstorm/components/explorer — implementation notes
