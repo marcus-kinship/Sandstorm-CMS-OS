@@ -1,0 +1,7 @@
+Tesseract.js OCR, vendored for Word light (no CDN at runtime).
+
+tesseract.min.js, worker.min.js   tesseract.js 5.1.1 (Apache-2.0)        https://www.npmjs.com/package/tesseract.js
+core/*.wasm.js                    tesseract.js-core 5.1.1 (Apache-2.0)   https://www.npmjs.com/package/tesseract.js-core
+                                  (LSTM-only builds: with and without SIMD)
+lang/swe|eng.traineddata.gz       @tesseract.js-data/swe|eng 1.0.0, 4.0.0_best_int
+                                  (Tesseract tessdata, Apache-2.0)       https://github.com/tesseract-ocr/tessdata_best

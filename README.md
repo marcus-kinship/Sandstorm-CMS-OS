@@ -76,6 +76,7 @@ For the detailed mechanics of *how* everything is wired together (boot sequence,
 └── program/                    # Applications
     ├── calc/          notepad/       gui/           solitaire/     mail/
     ├── formbuilder/   designer/      fotoviewer/    mediaplayer/   voiceinput/
+    └── wordlight/
 ```
 
 ---
@@ -329,6 +330,9 @@ A full page-builder (see [ARKITEKTUR.md §18](ARKITEKTUR.md)):
 
 ### Media Player (`program/mediaplayer/`)
 `multistart`, mp3 / mp4 / m3u. Context menu: Open/Add File · Open Folder · Close Media · Play/Pause · Stop · Next · Previous · Repeat · Shuffle. A session-lifetime status-icon overlay panel (works with no player window open) and a compact audio widget in Explorer's meta panel.
+
+### Word light (`program/wordlight/`)
+`multistart` PDF viewer with block-based editing (requirements: `KRAVSPEC_WORD_LIGHT.md`). Until a file is open the window shows only an Open prompt. Single-row ribbon (File · Home · Insert · Page · Review · View; icon left of the label), Word-style cm rulers (View → Ruler, X and Y separately) with draggable header/footer and side margins, page thumbnails, comments pane, status bar with zoom. Page handling (`pages.js`, pdf-lib on the original, own undo history): drag thumbnails to reorder; right-click a thumbnail for new page before/after, rotate 0/90/180/270° or delete; right-click a page to select its text, rotate or print it; the Page tab has Print · New page after · Export page · Import pages. Blocks — text, highlight, cover, comment, image — live in an editing layer on top of the page and are only written into the file on save (pdf-lib): burned onto the pages, comments as real PDF annotations, plus the original and the block data as attachments so the blocks stay editable when reopened. PDF.js renders in its Web Worker with scripting and `eval` off; only http(s)/mailto links are clickable. Files go through the Explorer API (`readFileBytes` / `writeFileBytes`, `windows.select.file` / `save.file`). OCR for scanned pages (Review → Recognize text) uses Tesseract.js. Libraries are vendored in `res/js/pdfjs/`, `res/js/pdf-lib/` and `res/js/tesseract/` (no CDN) and loaded on first use; the program is deliberately not in `combine.vbs` (it resolves them via `import.meta.url`).
 
 ### Voice Input (`program/voiceinput/`)
 A short-lived `app.ui.toggle.window()` overlay for speech input — no persistent window.

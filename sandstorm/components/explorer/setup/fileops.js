@@ -16,7 +16,7 @@
  * @module components/explorer/setup/fileops
  */
 import { isRealStoragePath, formatBytes } from '../window/fsutil.js';
-import { realWrite, realDelete, realUpload } from '../window/realfs.js';
+import { realWrite, realDelete, realUpload, realReadBinary } from '../window/realfs.js';
 
 /**
  * Registers `app.explorer.newFolder`/`remove`/`newFile`/`rename`/`openFile`/
@@ -341,18 +341,18 @@ export function registerFileOps(os) {
                         };
                         app.dev.log(`uploadFile (real): "${cleanPath}"`, 'Explorer');
                         app.explorer._refreshAll(destPath);
-                        resolve();
+                        resolve(cleanPath);
                     })
                     .catch(e => reject(e instanceof Error ? e : new Error(e?.message || _('Upload failed'))));
                 return;
             }
 
-            // Simulated tree: only read the dropped bytes into memory (as a
-            // data URL) for files the list/grid/meta panel can actually show
-            // a real thumbnail for — icons.js's fileIcon() convention is
-            // entry.url + extInfo[ext].thumbnail. For everything else,
-            // holding a data URL in memory would just be wasted cost for a
-            // file that's never previewable anyway.
+            // Simulated tree: the File itself is kept on the entry as `blob`
+            // (a cheap reference, not a copy) so programs can read the real
+            // bytes back via app.explorer.readFileBytes(). Additionally read
+            // into a data URL for files the list/grid/meta panel can show a
+            // real thumbnail for — icons.js's fileIcon() convention is
+            // entry.url + extInfo[ext].thumbnail.
             const wantsThumb = !!app.program?.extInfo?.[ext.toLowerCase()]?.thumbnail;
 
             const _commit = (url) => {
@@ -361,6 +361,7 @@ export function registerFileOps(os) {
                     size: formatBytes(file.size),
                     modified: new Date().toISOString().slice(0, 10),
                     ext,
+                    blob: file,
                     ...(url ? { url } : {}),
                 };
                 app.dev.log(`uploadFile: "${cleanPath}"`, 'Explorer');
@@ -370,7 +371,7 @@ export function registerFileOps(os) {
                 form.append('path', cleanPath);
                 form.append('file', file);
                 app.api.multiFormData('/api/fs/upload', form)?.success?.(() => {})?.fail?.(() => {});
-                resolve();
+                resolve(cleanPath);
             };
 
             if (wantsThumb) {
@@ -382,6 +383,70 @@ export function registerFileOps(os) {
                 _commit(null);
             }
         });
+    };
+
+    // ── app.explorer.readFileBytes(path) ─────────────────────────────────────
+    // Boot-safe binary read for programs that open non-text files (Word
+    // light's PDFs, …). Resolves a Uint8Array from whatever the entry holds:
+    // the imported `blob` (uploadFile above / writeFileBytes below), a data
+    // `url` (thumbnail-capable imports, seeded samples), a plain http(s)
+    // `url`, or text `content` (newFile). /RealStorage files are read from
+    // the server via realReadBinary.
+    app.explorer.readFileBytes = async function(path) {
+        if (isRealStoragePath(path)) return realReadBinary(path);
+
+        const e = app.explorer._getNode(path);
+        if (!e || e.type !== 'file') throw new Error(_('File not found') + ': ' + path);
+        if (e.blob) return new Uint8Array(await e.blob.arrayBuffer());
+        if (e.url) {
+            const res = await fetch(e.url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${path}`);
+            return new Uint8Array(await res.arrayBuffer());
+        }
+        if (typeof e.content === 'string' && e.content) return new TextEncoder().encode(e.content);
+        throw new Error(_('The file has no stored content') + ': ' + path);
+    };
+
+    // ── app.explorer.writeFileBytes(path, bytes, mime) ───────────────────────
+    // Boot-safe binary create-or-overwrite. Unlike uploadFile it never
+    // renames on a collision — it is the "Save" path for a file a program
+    // already has open. The parent folder must exist. Resolves the path.
+    app.explorer.writeFileBytes = async function(path, bytes, mime = 'application/octet-stream') {
+        const parts      = path.split('/').filter(Boolean);
+        const fileName   = parts.pop();
+        const parentPath = parts.length === 0 ? '/' : '/' + parts.join('/');
+        const parentNode = app.explorer._getNode(parentPath);
+        if (!fileName || !parentNode || parentNode.type !== 'folder') {
+            throw new Error(_('Destination folder not found') + ': ' + parentPath);
+        }
+
+        const dot  = fileName.lastIndexOf('.');
+        const ext  = dot > 0 ? fileName.slice(dot + 1) : '';
+        const file = new File([bytes], fileName, { type: mime });
+        const existing = parentNode.children[fileName];
+        if (existing && existing.type !== 'file') throw new Error(_('A folder with that name already exists'));
+
+        let size = formatBytes(file.size);
+        if (isRealStoragePath(path)) {
+            // file.write overwrites — same base64 path uploadFile uses
+            size = (await realUpload(path, file)).size;
+        }
+
+        parentNode.children[fileName] = {
+            ...(existing || {}),
+            type: 'file',
+            size,
+            modified: new Date().toISOString().slice(0, 10),
+            ext,
+            ...(isRealStoragePath(path) ? {} : { blob: file }),
+        };
+        // A stale data-URL thumbnail/source would shadow the new bytes
+        delete parentNode.children[fileName].url;
+        delete parentNode.children[fileName].content;
+
+        app.dev.log(`writeFileBytes: "${path}" (${size})`, 'Explorer');
+        app.explorer._refreshAll(parentPath);
+        return path;
     };
 
     // Public pointer for inline file creation (set by each start instance)
@@ -467,7 +532,11 @@ export function registerFileOps(os) {
 
             let destName = name, i = 1;
             while (destNode.children[destName]) destName = name + ' (' + (i++) + ')';
-            destNode.children[destName] = JSON.parse(JSON.stringify(srcParent.children[name]));
+            // structuredClone keeps binary `blob` contents (JSON would drop them)
+            const src = srcParent.children[name];
+            destNode.children[destName] = typeof structuredClone === 'function'
+                ? structuredClone(src)
+                : JSON.parse(JSON.stringify(src));
             if (mode === 'cut') delete srcParent.children[name];
         });
 

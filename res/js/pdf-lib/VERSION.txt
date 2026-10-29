@@ -1,0 +1,2 @@
+pdf-lib 1.17.1 (MIT) — dist/pdf-lib.esm.min.js
+https://www.npmjs.com/package/pdf-lib

@@ -95,6 +95,32 @@ export async function realRead(path) {
 }
 
 /**
+ * Reads a real file's raw bytes (PDFs, images, …). Asks the JSAPI backend
+ * for base64 with the same `encoding: 'base64'` marker realUpload writes
+ * with; if the backend answers with `encoding: 'base64'` the payload is
+ * decoded, otherwise the content is taken as text. The backend is external
+ * to this repo — confirm it honours the marker on `file.read` (and its
+ * 1 MiB read cap) before relying on this for large binary files.
+ *
+ * @param {string} path - Explorer-space path under /RealStorage
+ * @returns {Promise<Uint8Array>}
+ */
+export async function realReadBinary(path) {
+    const result = await app.api.post(app.config.local.jsapiLink, {
+        action: 'file.read',
+        data: { path: toServerRelPath(path), encoding: 'base64' }
+    });
+    const { content = '', encoding } = result.data || {};
+    if (encoding === 'base64') {
+        const bin = atob(content);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+    }
+    return new TextEncoder().encode(content);
+}
+
+/**
  * Creates or overwrites a real file. Rejects on failure (size cap, missing
  * parent directory, target is a folder, etc.) — caller mutates `_fs` only
  * after this resolves, never optimistically.

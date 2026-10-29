@@ -1,5 +1,8 @@
 {
     "sv": {
+        "File not found": "Filen hittades inte",
+        "The file has no stored content": "Filen har inget sparat innehåll",
+        "Destination folder not found": "Målmappen hittades inte",
         "Language": "Språk",
         "Language settings": "Språkinställningar",
         "More settings": "Fler inställningar",
